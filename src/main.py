@@ -119,7 +119,10 @@ df = df.fillna(0)
 
 print('prova branch')
 
-# %%
+# %% considera solo chi ha fatto più di un feat 
+df = df -1 
+df[df < 0] = 0
+
 G = nx.from_pandas_adjacency(df)
 net = Network()
 net.from_nx(G)
