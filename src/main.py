@@ -27,7 +27,7 @@ def get_feat(artist_uri,df):
     #raw_albums = spotify.artist_albums(artist_uri, album_type='album')
 
     all_albums = clean_album_gae(artist_uri)
-
+    friends = {}
     for album in all_albums:
         tracks = spotify.album_tracks(str(album[1]))
         for track in tracks['items']:
@@ -35,16 +35,23 @@ def get_feat(artist_uri,df):
                 
                 #if(artist['name'] != artist_name):
                 if ft['name'] in artists.keys():
+                    if ft['name'] in friends.keys():
+                        friends[ft['name']] += 1
+                    else:
+                        friends[ft['name']] = 1
                     #df.at[ft['name'], artist_name] += 1
                     #df.at[artist_name, artist['name']] = 1
-                    feat.setdefault(artist_name, []).append(ft['name'])  # qui fare +1 
+                    #feat.setdefault(artist_name, []).append(ft['name'])  # qui fare +1
+                    
 
+                #get uri
                 if ft['name'] not in get_uri.keys():
                     get_uri[ft['name']] = ft['uri']
+    feat[artist_name] = friends
 
 # faccio i related dei related e ritorna un dizionario nome->uri
-def get_related_artists(artist):
-    rel = spotify.artist_related_artists(artist) # get related artists
+def get_related_artists(artist_uri):
+    rel = spotify.artist_related_artists(artist_uri) # get related artists
     artists = {} # dict for saving all artists 
 
     #add related artists 
@@ -59,7 +66,7 @@ def get_related_artists(artist):
         for art in rel['artists']:
             artists[art['name']] = art['uri']
     
-    artists['Tedua'] = artist
+    artists['Tedua'] = artist_uri
     return artists
 
 
@@ -90,7 +97,6 @@ def clean_album_gae(artist_id):
     return titles
 
 
-
 # %%
 get_uri = {} 
 feat = {} 
@@ -102,7 +108,10 @@ for artist in artists.values():
      get_feat(artist,df)
 
 
-
+for artist, friends in feat.items():
+    for friend, nfeat in friends.items():
+        df.at[artist, friend] = nfeat
+        
 df = df.fillna(0)
 
 print('prova branch')
