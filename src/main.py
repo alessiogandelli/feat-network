@@ -9,6 +9,9 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import string
 import pandas as pd
 import numpy as np
+import networkx as nx
+from pyvis.network import Network
+
 
 load_dotenv()
 
@@ -116,4 +119,9 @@ df = df.fillna(0)
 
 print('prova branch')
 
+# %%
+G = nx.from_pandas_adjacency(df)
+net = Network()
+net.from_nx(G)
+net.show('example.html')
 # %%
