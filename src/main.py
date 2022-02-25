@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 from pyvis.network import Network
-
+from networkx.algorithms import community #This part of networkx, for community detection, needs to be imported separately.
 
 load_dotenv()
 
@@ -138,12 +138,56 @@ df = get_df(tedua)
 # %% crea grafo nel file html
 # 
 # 
-#considera solo chi ha fatto più di un feat 
-df = df -2
-df[df < 0] = 0
+#considera solo chi ha fatto più di uno due e tre feat 
+df3 = df -3 
+df3[df3 < 0] = 0
 
-G = nx.from_pandas_adjacency(df) # graph 
-net = Network() # network
-net.from_nx(G)
+df2 = df -2 
+df2[df2< 0] = 0
+
+df1 = df -1 
+df1[df1 < 0] = 0
+
+G0 = nx.from_pandas_adjacency(df) # graph
+G1= nx.from_pandas_adjacency(df1) # graph
+G2 = nx.from_pandas_adjacency(df2) # graph
+G3 = nx.from_pandas_adjacency(df3) # graph
+
+#%% graph analysis 
+G = G0
+print(nx.info(G))
+print(nx.density(G))
+
+#centrality
+degree_dict = dict(G.degree(G.nodes()))
+betweenness_dict = nx.betweenness_centrality(G) # Run betweenness centrality
+eigenvector_dict = nx.eigenvector_centrality(G) # Run eigenvector centrality
+
+degree_sort =sorted(degree_dict.items(), key= lambda item: item[1], reverse=True)
+between_sort = sorted(betweenness_dict.items(),key= lambda item: item[1], reverse=True)
+eigen_sort = sorted(eigenvector_dict.items(),key= lambda item: item[1], reverse=True)
+
+nx.set_node_attributes(G, degree_dict, 'degree')
+nx.set_node_attributes(G, betweenness_dict, 'betweenness')
+nx.set_node_attributes(G, eigenvector_dict, 'eigenvector')
+
+
+#communities
+communities = community.greedy_modularity_communities(G)
+
+modularity_dict = {} 
+for com,artists in enumerate(communities): 
+    for name in artists: 
+        modularity_dict[name] = com
+
+nx.set_node_attributes(G, modularity_dict, 'modularity')
+
+
+
+#%%create html file to visualize network topology
+net = Network('100%', '100%') # network
+net.barnes_hut()
+net.show_buttons()
+net.from_nx(G, lambda x: list(nx.get_node_attributes(G, 'degree').items())[x][1], lambda y: list(nx.get_edge_attributes(G, 'weight').items())[y][1])
 net.show('feat.html')
 # %%
