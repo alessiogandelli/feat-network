@@ -1,0 +1,204 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+
+<style type="text/css">
+
+        #mynetwork {
+            width: 1500px;
+            height: 1000px;
+            background-color: #ffffff;
+            border: 1px solid lightgray;
+            position: relative;
+            float: left;
+        }
+
+        
+        #loadingBar {
+            position:absolute;
+            top:0px;
+            left:0px;
+            width: 500px;
+            height: 500px;
+            background-color:rgba(200,200,200,0.8);
+            -webkit-transition: all 0.5s ease;
+            -moz-transition: all 0.5s ease;
+            -ms-transition: all 0.5s ease;
+            -o-transition: all 0.5s ease;
+            transition: all 0.5s ease;
+            opacity:1;
+        }
+
+        #bar {
+            position:absolute;
+            top:0px;
+            left:0px;
+            width:20px;
+            height:20px;
+            margin:auto auto auto auto;
+            border-radius:11px;
+            border:2px solid rgba(30,30,30,0.05);
+            background: rgb(0, 173, 246); /* Old browsers */
+            box-shadow: 2px 0px 4px rgba(0,0,0,0.4);
+        }
+
+        #border {
+            position:absolute;
+            top:10px;
+            left:10px;
+            width:500px;
+            height:23px;
+            margin:auto auto auto auto;
+            box-shadow: 0px 0px 4px rgba(0,0,0,0.2);
+            border-radius:10px;
+        }
+
+        #text {
+            position:absolute;
+            top:8px;
+            left:530px;
+            width:30px;
+            height:50px;
+            margin:auto auto auto auto;
+            font-size:22px;
+            color: #000000;
+        }
+
+        div.outerBorder {
+            position:relative;
+            top:400px;
+            width:600px;
+            height:44px;
+            margin:auto auto auto auto;
+            border:8px solid rgba(0,0,0,0.1);
+            background: rgb(252,252,252); /* Old browsers */
+            background: -moz-linear-gradient(top,  rgba(252,252,252,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(252,252,252,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+            background: -webkit-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+            background: -o-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+            background: -ms-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+            background: linear-gradient(to bottom,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+            border-radius:72px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+        }
+        
+
+        
+
+        
+</style>
+
+</head>
+
+<body>
+<div id = "mynetwork"></div>
+
+<div id="loadingBar">
+    <div class="outerBorder">
+        <div id="text">0%</div>
+        <div id="border">
+            <div id="bar"></div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    // initialize global variables.
+    var edges;
+    var nodes;
+    var network; 
+    var container;
+    var options, data;
+
+    
+    // This method is responsible for drawing the graph, returns the drawn network
+    function drawGraph() {
+        var container = document.getElementById('mynetwork');
+        
+        
+
+        // parsing and collecting nodes and edges from the python
+        nodes = new vis.DataSet([{"id": "Lazza", "label": "Lazza", "shape": "dot", "size": 10}, {"id": "Emis Killa", "label": "Emis Killa", "shape": "dot", "size": 10}, {"id": "Low Kidd", "label": "Low Kidd", "shape": "dot", "size": 10}, {"id": "Vegas Jones", "label": "Vegas Jones", "shape": "dot", "size": 10}, {"id": "MadMan", "label": "MadMan", "shape": "dot", "size": 10}, {"id": "Gemitaiz", "label": "Gemitaiz", "shape": "dot", "size": 10}, {"id": "Capo Plaza", "label": "Capo Plaza", "shape": "dot", "size": 10}, {"id": "Ketama126", "label": "Ketama126", "shape": "dot", "size": 10}, {"id": "Drone126", "label": "Drone126", "shape": "dot", "size": 10}, {"id": "Pretty Solero", "label": "Pretty Solero", "shape": "dot", "size": 10}, {"id": "Dark Polo Gang", "label": "Dark Polo Gang", "shape": "dot", "size": 10}, {"id": "Ghali", "label": "Ghali", "shape": "dot", "size": 10}, {"id": "Rkomi", "label": "Rkomi", "shape": "dot", "size": 10}, {"id": "Night Skinny", "label": "Night Skinny", "shape": "dot", "size": 10}, {"id": "Achille Lauro", "label": "Achille Lauro", "shape": "dot", "size": 10}, {"id": "Frenetik\u0026Orang3", "label": "Frenetik\u0026Orang3", "shape": "dot", "size": 10}, {"id": "Ernia", "label": "Ernia", "shape": "dot", "size": 10}, {"id": "Sfera Ebbasta", "label": "Sfera Ebbasta", "shape": "dot", "size": 10}, {"id": "Carl Brave x Franco126", "label": "Carl Brave x Franco126", "shape": "dot", "size": 10}, {"id": "Carl Brave", "label": "Carl Brave", "shape": "dot", "size": 10}, {"id": "Jake La Furia", "label": "Jake La Furia", "shape": "dot", "size": 10}, {"id": "Noyz Narcos", "label": "Noyz Narcos", "shape": "dot", "size": 10}, {"id": "Aban", "label": "Aban", "shape": "dot", "size": 10}, {"id": "Chicoria", "label": "Chicoria", "shape": "dot", "size": 10}, {"id": "Gu\u00e8", "label": "Gu\u00e8", "shape": "dot", "size": 10}, {"id": "Ensi", "label": "Ensi", "shape": "dot", "size": 10}, {"id": "Sercho", "label": "Sercho", "shape": "dot", "size": 10}, {"id": "Don Joe", "label": "Don Joe", "shape": "dot", "size": 10}, {"id": "Marracash", "label": "Marracash", "shape": "dot", "size": 10}, {"id": "J-AX", "label": "J-AX", "shape": "dot", "size": 10}, {"id": "DJ Fede", "label": "DJ Fede", "shape": "dot", "size": 10}, {"id": "Club Dogo", "label": "Club Dogo", "shape": "dot", "size": 10}, {"id": "Tedua", "label": "Tedua", "shape": "dot", "size": 10}, {"id": "Chris Nolan", "label": "Chris Nolan", "shape": "dot", "size": 10}, {"id": "Raige", "label": "Raige", "shape": "dot", "size": 10}, {"id": "Nayt", "label": "Nayt", "shape": "dot", "size": 10}, {"id": "Rocco Hunt", "label": "Rocco Hunt", "shape": "dot", "size": 10}, {"id": "Clementino", "label": "Clementino", "shape": "dot", "size": 10}, {"id": "DrefGold", "label": "DrefGold", "shape": "dot", "size": 10}, {"id": "Gianni Bismark", "label": "Gianni Bismark", "shape": "dot", "size": 10}, {"id": "Tauro Boys", "label": "Tauro Boys", "shape": "dot", "size": 10}, {"id": "Quentin40", "label": "Quentin40", "shape": "dot", "size": 10}, {"id": "Franco126", "label": "Franco126", "shape": "dot", "size": 10}, {"id": "Bresh", "label": "Bresh", "shape": "dot", "size": 10}, {"id": "Fred De Palma", "label": "Fred De Palma", "shape": "dot", "size": 10}, {"id": "MamboLosco", "label": "MamboLosco", "shape": "dot", "size": 10}, {"id": "Boro Boro", "label": "Boro Boro", "shape": "dot", "size": 10}, {"id": "TY1", "label": "TY1", "shape": "dot", "size": 10}, {"id": "Salmo", "label": "Salmo", "shape": "dot", "size": 10}, {"id": "Coez", "label": "Coez", "shape": "dot", "size": 10}, {"id": "Brokenspeakers", "label": "Brokenspeakers", "shape": "dot", "size": 10}, {"id": "Lucci", "label": "Lucci", "shape": "dot", "size": 10}, {"id": "Gazzelle", "label": "Gazzelle", "shape": "dot", "size": 10}, {"id": "LIBERATO", "label": "LIBERATO", "shape": "dot", "size": 10}, {"id": "Highsnob", "label": "Highsnob", "shape": "dot", "size": 10}, {"id": "JUNIOR CALLY", "label": "JUNIOR CALLY", "shape": "dot", "size": 10}, {"id": "Dani Faiv", "label": "Dani Faiv", "shape": "dot", "size": 10}, {"id": "Nerone", "label": "Nerone", "shape": "dot", "size": 10}, {"id": "Zoda", "label": "Zoda", "shape": "dot", "size": 10}, {"id": "Beba", "label": "Beba", "shape": "dot", "size": 10}, {"id": "Sick Luke", "label": "Sick Luke", "shape": "dot", "size": 10}, {"id": "Mecna", "label": "Mecna", "shape": "dot", "size": 10}, {"id": "Frah Quintale", "label": "Frah Quintale", "shape": "dot", "size": 10}, {"id": "Coma_Cose", "label": "Coma_Cose", "shape": "dot", "size": 10}, {"id": "Willie Peyote", "label": "Willie Peyote", "shape": "dot", "size": 10}, {"id": "Funk Shui Project", "label": "Funk Shui Project", "shape": "dot", "size": 10}, {"id": "Canova", "label": "Canova", "shape": "dot", "size": 10}, {"id": "Cosmo", "label": "Cosmo", "shape": "dot", "size": 10}, {"id": "Pop X", "label": "Pop X", "shape": "dot", "size": 10}, {"id": "Fedez", "label": "Fedez", "shape": "dot", "size": 10}, {"id": "Bassi Maestro", "label": "Bassi Maestro", "shape": "dot", "size": 10}, {"id": "Mondo Marcio", "label": "Mondo Marcio", "shape": "dot", "size": 10}, {"id": "Jack The Smoker", "label": "Jack The Smoker", "shape": "dot", "size": 10}, {"id": "Danti", "label": "Danti", "shape": "dot", "size": 10}, {"id": "Fabri Fibra", "label": "Fabri Fibra", "shape": "dot", "size": 10}, {"id": "Vacca", "label": "Vacca", "shape": "dot", "size": 10}, {"id": "Two Fingerz", "label": "Two Fingerz", "shape": "dot", "size": 10}, {"id": "Dargen D\u0027Amico", "label": "Dargen D\u0027Amico", "shape": "dot", "size": 10}, {"id": "Inoki", "label": "Inoki", "shape": "dot", "size": 10}, {"id": "Colle Der Fomento", "label": "Colle Der Fomento", "shape": "dot", "size": 10}, {"id": "Nex Cassel", "label": "Nex Cassel", "shape": "dot", "size": 10}, {"id": "Egreen", "label": "Egreen", "shape": "dot", "size": 10}, {"id": "Mistaman", "label": "Mistaman", "shape": "dot", "size": 10}, {"id": "Cor Veleno", "label": "Cor Veleno", "shape": "dot", "size": 10}, {"id": "Co\u0027Sang", "label": "Co\u0027Sang", "shape": "dot", "size": 10}, {"id": "Gemello", "label": "Gemello", "shape": "dot", "size": 10}, {"id": "Kiave", "label": "Kiave", "shape": "dot", "size": 10}, {"id": "CoCo", "label": "CoCo", "shape": "dot", "size": 10}, {"id": "2nd Roof", "label": "2nd Roof", "shape": "dot", "size": 10}, {"id": "Zampa", "label": "Zampa", "shape": "dot", "size": 10}, {"id": "Jesto", "label": "Jesto", "shape": "dot", "size": 10}, {"id": "Sangue Misto", "label": "Sangue Misto", "shape": "dot", "size": 10}, {"id": "Entics", "label": "Entics", "shape": "dot", "size": 10}, {"id": "Nesli", "label": "Nesli", "shape": "dot", "size": 10}, {"id": "Babaman", "label": "Babaman", "shape": "dot", "size": 10}, {"id": "Sottotono", "label": "Sottotono", "shape": "dot", "size": 10}, {"id": "Ghemon", "label": "Ghemon", "shape": "dot", "size": 10}, {"id": "Caneda", "label": "Caneda", "shape": "dot", "size": 10}, {"id": "Stokka \u0026 Madbuddy", "label": "Stokka \u0026 Madbuddy", "shape": "dot", "size": 10}, {"id": "Fritz Da Cat", "label": "Fritz Da Cat", "shape": "dot", "size": 10}, {"id": "lowlow", "label": "lowlow", "shape": "dot", "size": 10}, {"id": "Briga", "label": "Briga", "shape": "dot", "size": 10}, {"id": "L\u0027Elfo", "label": "L\u0027Elfo", "shape": "dot", "size": 10}, {"id": "Axos", "label": "Axos", "shape": "dot", "size": 10}, {"id": "Rock Birken", "label": "Rock Birken", "shape": "dot", "size": 10}, {"id": "Baby K", "label": "Baby K", "shape": "dot", "size": 10}, {"id": "GionnyScandal", "label": "GionnyScandal", "shape": "dot", "size": 10}, {"id": "Enzo Dong", "label": "Enzo Dong", "shape": "dot", "size": 10}, {"id": "La\u00efoung", "label": "La\u00efoung", "shape": "dot", "size": 10}, {"id": "G.bit", "label": "G.bit", "shape": "dot", "size": 10}, {"id": "Samuel Heron", "label": "Samuel Heron", "shape": "dot", "size": 10}, {"id": "Cromo", "label": "Cromo", "shape": "dot", "size": 10}, {"id": "tha Supreme", "label": "tha Supreme", "shape": "dot", "size": 10}, {"id": "Young Rame", "label": "Young Rame", "shape": "dot", "size": 10}, {"id": "Edo Fendy", "label": "Edo Fendy", "shape": "dot", "size": 10}, {"id": "Nashley", "label": "Nashley", "shape": "dot", "size": 10}, {"id": "Skioffi", "label": "Skioffi", "shape": "dot", "size": 10}, {"id": "Danien \u0026 The\u00f8", "label": "Danien \u0026 The\u00f8", "shape": "dot", "size": 10}, {"id": "Generic Animal", "label": "Generic Animal", "shape": "dot", "size": 10}, {"id": "Lil Busso", "label": "Lil Busso", "shape": "dot", "size": 10}, {"id": "Vale Lambo", "label": "Vale Lambo", "shape": "dot", "size": 10}, {"id": "IRBIS 37", "label": "IRBIS 37", "shape": "dot", "size": 10}, {"id": "Fuera", "label": "Fuera", "shape": "dot", "size": 10}, {"id": "Rasty Kilo", "label": "Rasty Kilo", "shape": "dot", "size": 10}, {"id": "Silent Bob", "label": "Silent Bob", "shape": "dot", "size": 10}, {"id": "Nader Shah", "label": "Nader Shah", "shape": "dot", "size": 10}, {"id": "Shade", "label": "Shade", "shape": "dot", "size": 10}, {"id": "Articolo 31", "label": "Articolo 31", "shape": "dot", "size": 10}, {"id": "Oro Bianco", "label": "Oro Bianco", "shape": "dot", "size": 10}, {"id": "Neffa", "label": "Neffa", "shape": "dot", "size": 10}, {"id": "Johnny Marsiglia", "label": "Johnny Marsiglia", "shape": "dot", "size": 10}, {"id": "Pinguini Tattici Nucleari", "label": "Pinguini Tattici Nucleari", "shape": "dot", "size": 10}, {"id": "Motta", "label": "Motta", "shape": "dot", "size": 10}, {"id": "Ex-Otago", "label": "Ex-Otago", "shape": "dot", "size": 10}, {"id": "Thegiornalisti", "label": "Thegiornalisti", "shape": "dot", "size": 10}, {"id": "Brunori Sas", "label": "Brunori Sas", "shape": "dot", "size": 10}, {"id": "Lo Stato Sociale", "label": "Lo Stato Sociale", "shape": "dot", "size": 10}, {"id": "Fast Animals and Slow Kids", "label": "Fast Animals and Slow Kids", "shape": "dot", "size": 10}, {"id": "AIELLO", "label": "AIELLO", "shape": "dot", "size": 10}, {"id": "MV Killa", "label": "MV Killa", "shape": "dot", "size": 10}, {"id": "Canesecco", "label": "Canesecco", "shape": "dot", "size": 10}, {"id": "SAC1", "label": "SAC1", "shape": "dot", "size": 10}, {"id": "En?gma", "label": "En?gma", "shape": "dot", "size": 10}, {"id": "Blue Virus", "label": "Blue Virus", "shape": "dot", "size": 10}, {"id": "Cranio Randagio", "label": "Cranio Randagio", "shape": "dot", "size": 10}, {"id": "Mezzosangue", "label": "Mezzosangue", "shape": "dot", "size": 10}, {"id": "Noyz Narcos \u0026 Fritz Da Cat", "label": "Noyz Narcos \u0026 Fritz Da Cat", "shape": "dot", "size": 10}, {"id": "Cicco Sanchez", "label": "Cicco Sanchez", "shape": "dot", "size": 10}, {"id": "I Cani", "label": "I Cani", "shape": "dot", "size": 10}, {"id": "Murubutu", "label": "Murubutu", "shape": "dot", "size": 10}, {"id": "CIMINI", "label": "CIMINI", "shape": "dot", "size": 10}, {"id": "The Zen Circus", "label": "The Zen Circus", "shape": "dot", "size": 10}, {"id": "Colapesce", "label": "Colapesce", "shape": "dot", "size": 10}, {"id": "Tre Allegri Ragazzi Morti", "label": "Tre Allegri Ragazzi Morti", "shape": "dot", "size": 10}, {"id": "Rancore", "label": "Rancore", "shape": "dot", "size": 10}, {"id": "Eugenio In Via Di Gioia", "label": "Eugenio In Via Di Gioia", "shape": "dot", "size": 10}, {"id": "Galeffi", "label": "Galeffi", "shape": "dot", "size": 10}, {"id": "Margherita Vicario", "label": "Margherita Vicario", "shape": "dot", "size": 10}, {"id": "Dente", "label": "Dente", "shape": "dot", "size": 10}, {"id": "Gomma", "label": "Gomma", "shape": "dot", "size": 10}, {"id": "Baustelle", "label": "Baustelle", "shape": "dot", "size": 10}, {"id": "Joan Thiele", "label": "Joan Thiele", "shape": "dot", "size": 10}, {"id": "Ceri", "label": "Ceri", "shape": "dot", "size": 10}, {"id": "Francesco De Leo", "label": "Francesco De Leo", "shape": "dot", "size": 10}, {"id": "Venerus", "label": "Venerus", "shape": "dot", "size": 10}, {"id": "Viito", "label": "Viito", "shape": "dot", "size": 10}, {"id": "Masamasa", "label": "Masamasa", "shape": "dot", "size": 10}, {"id": "Uomini Di Mare", "label": "Uomini Di Mare", "shape": "dot", "size": 10}, {"id": "Turi", "label": "Turi", "shape": "dot", "size": 10}, {"id": "Microspasmi", "label": "Microspasmi", "shape": "dot", "size": 10}, {"id": "Piotta", "label": "Piotta", "shape": "dot", "size": 10}, {"id": "Flaminio Maphia", "label": "Flaminio Maphia", "shape": "dot", "size": 10}, {"id": "Brusco", "label": "Brusco", "shape": "dot", "size": 10}, {"id": "DJ Gruff", "label": "DJ Gruff", "shape": "dot", "size": 10}, {"id": "Otierre", "label": "Otierre", "shape": "dot", "size": 10}, {"id": "Assalti Frontali", "label": "Assalti Frontali", "shape": "dot", "size": 10}, {"id": "Micromala", "label": "Micromala", "shape": "dot", "size": 10}, {"id": "Primo Squarta", "label": "Primo Squarta", "shape": "dot", "size": 10}, {"id": "Mr. Phil", "label": "Mr. Phil", "shape": "dot", "size": 10}, {"id": "Il Turco", "label": "Il Turco", "shape": "dot", "size": 10}, {"id": "Lucariello", "label": "Lucariello", "shape": "dot", "size": 10}, {"id": "La Famiglia", "label": "La Famiglia", "shape": "dot", "size": 10}, {"id": "Gilmar", "label": "Gilmar", "shape": "dot", "size": 10}, {"id": "Videomind", "label": "Videomind", "shape": "dot", "size": 10}, {"id": "Deleterio", "label": "Deleterio", "shape": "dot", "size": 10}, {"id": "Vincenzo Da Via Anfossi", "label": "Vincenzo Da Via Anfossi", "shape": "dot", "size": 10}, {"id": "One Mic", "label": "One Mic", "shape": "dot", "size": 10}, {"id": "Swelto", "label": "Swelto", "shape": "dot", "size": 10}, {"id": "Gli Inquilini", "label": "Gli Inquilini", "shape": "dot", "size": 10}, {"id": "DJ Enzo", "label": "DJ Enzo", "shape": "dot", "size": 10}, {"id": "Huga Flame", "label": "Huga Flame", "shape": "dot", "size": 10}, {"id": "Sud Sound System", "label": "Sud Sound System", "shape": "dot", "size": 10}, {"id": "99 Posse", "label": "99 Posse", "shape": "dot", "size": 10}, {"id": "Gemelli Diversi", "label": "Gemelli Diversi", "shape": "dot", "size": 10}]);
+        edges = new vis.DataSet([{"from": "Lazza", "to": "Lazza", "weight": 35}, {"from": "Lazza", "to": "Emis Killa", "weight": 2}, {"from": "Lazza", "to": "Low Kidd", "weight": 8}, {"from": "Vegas Jones", "to": "Vegas Jones", "weight": 86}, {"from": "MadMan", "to": "MadMan", "weight": 98}, {"from": "MadMan", "to": "Gemitaiz", "weight": 37}, {"from": "Capo Plaza", "to": "Capo Plaza", "weight": 37}, {"from": "Ketama126", "to": "Ketama126", "weight": 52}, {"from": "Ketama126", "to": "Drone126", "weight": 3}, {"from": "Ketama126", "to": "Pretty Solero", "weight": 1}, {"from": "Dark Polo Gang", "to": "Dark Polo Gang", "weight": 96}, {"from": "Ghali", "to": "Ghali", "weight": 51}, {"from": "Rkomi", "to": "Rkomi", "weight": 67}, {"from": "Rkomi", "to": "Night Skinny", "weight": 5}, {"from": "Achille Lauro", "to": "Achille Lauro", "weight": 104}, {"from": "Achille Lauro", "to": "Gemitaiz", "weight": 4}, {"from": "Achille Lauro", "to": "Frenetik\u0026Orang3", "weight": 3}, {"from": "Achille Lauro", "to": "Night Skinny", "weight": 1}, {"from": "Ernia", "to": "Ernia", "weight": 30}, {"from": "Ernia", "to": "Night Skinny", "weight": 1}, {"from": "Sfera Ebbasta", "to": "Sfera Ebbasta", "weight": 51}, {"from": "Carl Brave x Franco126", "to": "Carl Brave x Franco126", "weight": 11}, {"from": "Carl Brave", "to": "Carl Brave", "weight": 42}, {"from": "Emis Killa", "to": "Emis Killa", "weight": 141}, {"from": "Emis Killa", "to": "Jake La Furia", "weight": 15}, {"from": "Noyz Narcos", "to": "Noyz Narcos", "weight": 101}, {"from": "Noyz Narcos", "to": "Night Skinny", "weight": 3}, {"from": "Noyz Narcos", "to": "Aban", "weight": 1}, {"from": "Noyz Narcos", "to": "Chicoria", "weight": 13}, {"from": "Gemitaiz", "to": "Gemitaiz", "weight": 114}, {"from": "Gemitaiz", "to": "Gu\u00e8", "weight": 1}, {"from": "Gemitaiz", "to": "Ensi", "weight": 1}, {"from": "Gemitaiz", "to": "Sercho", "weight": 1}, {"from": "Gu\u00e8", "to": "Gu\u00e8", "weight": 171}, {"from": "Gu\u00e8", "to": "Don Joe", "weight": 4}, {"from": "Gu\u00e8", "to": "Marracash", "weight": 17}, {"from": "Gu\u00e8", "to": "J-AX", "weight": 2}, {"from": "Gu\u00e8", "to": "Night Skinny", "weight": 1}, {"from": "Gu\u00e8", "to": "DJ Fede", "weight": 2}, {"from": "Don Joe", "to": "Don Joe", "weight": 55}, {"from": "Don Joe", "to": "Marracash", "weight": 3}, {"from": "Don Joe", "to": "Jake La Furia", "weight": 4}, {"from": "Don Joe", "to": "J-AX", "weight": 1}, {"from": "Club Dogo", "to": "Club Dogo", "weight": 111}, {"from": "Club Dogo", "to": "Marracash", "weight": 3}, {"from": "Tedua", "to": "Tedua", "weight": 47}, {"from": "Tedua", "to": "Chris Nolan", "weight": 12}, {"from": "Ensi", "to": "Ensi", "weight": 51}, {"from": "Ensi", "to": "Raige", "weight": 10}, {"from": "Ensi", "to": "Night Skinny", "weight": 1}, {"from": "Ensi", "to": "DJ Fede", "weight": 1}, {"from": "Nayt", "to": "Nayt", "weight": 57}, {"from": "Rocco Hunt", "to": "Rocco Hunt", "weight": 75}, {"from": "Rocco Hunt", "to": "Clementino", "weight": 1}, {"from": "DrefGold", "to": "DrefGold", "weight": 24}, {"from": "Gianni Bismark", "to": "Gianni Bismark", "weight": 34}, {"from": "Tauro Boys", "to": "Tauro Boys", "weight": 42}, {"from": "Quentin40", "to": "Quentin40", "weight": 10}, {"from": "Drone126", "to": "Drone126", "weight": 8}, {"from": "Drone126", "to": "Pretty Solero", "weight": 2}, {"from": "Drone126", "to": "Franco126", "weight": 2}, {"from": "Bresh", "to": "Bresh", "weight": 23}, {"from": "Fred De Palma", "to": "Fred De Palma", "weight": 85}, {"from": "MamboLosco", "to": "MamboLosco", "weight": 23}, {"from": "MamboLosco", "to": "Boro Boro", "weight": 7}, {"from": "TY1", "to": "TY1", "weight": 25}, {"from": "Salmo", "to": "Salmo", "weight": 95}, {"from": "Marracash", "to": "Marracash", "weight": 121}, {"from": "Coez", "to": "Coez", "weight": 61}, {"from": "Coez", "to": "Brokenspeakers", "weight": 10}, {"from": "Coez", "to": "Lucci", "weight": 3}, {"from": "Gazzelle", "to": "Gazzelle", "weight": 25}, {"from": "LIBERATO", "to": "LIBERATO", "weight": 22}, {"from": "Highsnob", "to": "Highsnob", "weight": 18}, {"from": "JUNIOR CALLY", "to": "JUNIOR CALLY", "weight": 21}, {"from": "Dani Faiv", "to": "Dani Faiv", "weight": 41}, {"from": "Nerone", "to": "Nerone", "weight": 86}, {"from": "Zoda", "to": "Zoda", "weight": 4}, {"from": "Beba", "to": "Beba", "weight": 11}, {"from": "Sick Luke", "to": "Sick Luke", "weight": 85}, {"from": "Sick Luke", "to": "Mecna", "weight": 7}, {"from": "Frah Quintale", "to": "Frah Quintale", "weight": 51}, {"from": "Coma_Cose", "to": "Coma_Cose", "weight": 13}, {"from": "Willie Peyote", "to": "Willie Peyote", "weight": 84}, {"from": "Willie Peyote", "to": "Funk Shui Project", "weight": 9}, {"from": "Canova", "to": "Canova", "weight": 15}, {"from": "Cosmo", "to": "Cosmo", "weight": 42}, {"from": "Pop X", "to": "Pop X", "weight": 81}, {"from": "Fedez", "to": "Fedez", "weight": 145}, {"from": "Fedez", "to": "J-AX", "weight": 19}, {"from": "Bassi Maestro", "to": "Bassi Maestro", "weight": 232}, {"from": "Bassi Maestro", "to": "Mondo Marcio", "weight": 5}, {"from": "Bassi Maestro", "to": "Jack The Smoker", "weight": 1}, {"from": "Mondo Marcio", "to": "Mondo Marcio", "weight": 242}, {"from": "Mondo Marcio", "to": "DJ Fede", "weight": 1}, {"from": "Mondo Marcio", "to": "Danti", "weight": 2}, {"from": "Fabri Fibra", "to": "Fabri Fibra", "weight": 162}, {"from": "Vacca", "to": "Vacca", "weight": 204}, {"from": "Vacca", "to": "Two Fingerz", "weight": 7}, {"from": "Clementino", "to": "Clementino", "weight": 125}, {"from": "Dargen D\u0027Amico", "to": "Dargen D\u0027Amico", "weight": 156}, {"from": "Dargen D\u0027Amico", "to": "Two Fingerz", "weight": 4}, {"from": "Inoki", "to": "Inoki", "weight": 147}, {"from": "Colle Der Fomento", "to": "Colle Der Fomento", "weight": 64}, {"from": "Nex Cassel", "to": "Nex Cassel", "weight": 41}, {"from": "Nex Cassel", "to": "Egreen", "weight": 8}, {"from": "Mistaman", "to": "Mistaman", "weight": 77}, {"from": "Cor Veleno", "to": "Cor Veleno", "weight": 99}, {"from": "Co\u0027Sang", "to": "Co\u0027Sang", "weight": 26}, {"from": "Gemello", "to": "Gemello", "weight": 18}, {"from": "Mecna", "to": "Mecna", "weight": 85}, {"from": "Mecna", "to": "Kiave", "weight": 1}, {"from": "Mecna", "to": "CoCo", "weight": 10}, {"from": "2nd Roof", "to": "2nd Roof", "weight": 16}, {"from": "Jack The Smoker", "to": "Jack The Smoker", "weight": 81}, {"from": "Jack The Smoker", "to": "Zampa", "weight": 21}, {"from": "Jack The Smoker", "to": "DJ Fede", "weight": 2}, {"from": "Jake La Furia", "to": "Jake La Furia", "weight": 42}, {"from": "Jake La Furia", "to": "J-AX", "weight": 2}, {"from": "Jake La Furia", "to": "Aban", "weight": 1}, {"from": "Two Fingerz", "to": "Two Fingerz", "weight": 114}, {"from": "Jesto", "to": "Jesto", "weight": 122}, {"from": "Sangue Misto", "to": "Sangue Misto", "weight": 9}, {"from": "Entics", "to": "Entics", "weight": 63}, {"from": "Nesli", "to": "Nesli", "weight": 118}, {"from": "Babaman", "to": "Babaman", "weight": 51}, {"from": "Sottotono", "to": "Sottotono", "weight": 68}, {"from": "Raige", "to": "Raige", "weight": 98}, {"from": "Ghemon", "to": "Ghemon", "weight": 109}, {"from": "Ghemon", "to": "Kiave", "weight": 2}, {"from": "Caneda", "to": "Caneda", "weight": 77}, {"from": "Stokka \u0026 Madbuddy", "to": "Stokka \u0026 Madbuddy", "weight": 46}, {"from": "Fritz Da Cat", "to": "Fritz Da Cat", "weight": 17}, {"from": "Kiave", "to": "Kiave", "weight": 84}, {"from": "lowlow", "to": "lowlow", "weight": 75}, {"from": "lowlow", "to": "Sercho", "weight": 10}, {"from": "lowlow", "to": "Briga", "weight": 2}, {"from": "Sercho", "to": "Sercho", "weight": 67}, {"from": "Briga", "to": "Briga", "weight": 83}, {"from": "L\u0027Elfo", "to": "L\u0027Elfo", "weight": 43}, {"from": "Axos", "to": "Axos", "weight": 25}, {"from": "Rock Birken", "to": "Rock Birken", "weight": 7}, {"from": "Baby K", "to": "Baby K", "weight": 54}, {"from": "GionnyScandal", "to": "GionnyScandal", "weight": 131}, {"from": "Enzo Dong", "to": "Enzo Dong", "weight": 12}, {"from": "La\u00efoung", "to": "La\u00efoung", "weight": 61}, {"from": "Boro Boro", "to": "Boro Boro", "weight": 7}, {"from": "G.bit", "to": "G.bit", "weight": 9}, {"from": "Samuel Heron", "to": "Samuel Heron", "weight": 15}, {"from": "Cromo", "to": "Cromo", "weight": 21}, {"from": "tha Supreme", "to": "tha Supreme", "weight": 18}, {"from": "Young Rame", "to": "Young Rame", "weight": 19}, {"from": "Edo Fendy", "to": "Edo Fendy", "weight": 4}, {"from": "Nashley", "to": "Nashley", "weight": 7}, {"from": "Skioffi", "to": "Skioffi", "weight": 33}, {"from": "Frenetik\u0026Orang3", "to": "Frenetik\u0026Orang3", "weight": 11}, {"from": "Danien \u0026 The\u00f8", "to": "Danien \u0026 The\u00f8", "weight": 7}, {"from": "Pretty Solero", "to": "Pretty Solero", "weight": 19}, {"from": "Pretty Solero", "to": "Generic Animal", "weight": 3}, {"from": "Lil Busso", "to": "Lil Busso", "weight": 15}, {"from": "Vale Lambo", "to": "Vale Lambo", "weight": 27}, {"from": "IRBIS 37", "to": "IRBIS 37", "weight": 21}, {"from": "Fuera", "to": "Fuera", "weight": 7}, {"from": "Rasty Kilo", "to": "Rasty Kilo", "weight": 21}, {"from": "Rasty Kilo", "to": "Night Skinny", "weight": 3}, {"from": "Low Kidd", "to": "Low Kidd", "weight": 6}, {"from": "Silent Bob", "to": "Silent Bob", "weight": 27}, {"from": "Nader Shah", "to": "Nader Shah", "weight": 81}, {"from": "Chris Nolan", "to": "Chris Nolan", "weight": 12}, {"from": "Shade", "to": "Shade", "weight": 35}, {"from": "J-AX", "to": "J-AX", "weight": 247}, {"from": "J-AX", "to": "Articolo 31", "weight": 44}, {"from": "Oro Bianco", "to": "Oro Bianco", "weight": 32}, {"from": "Neffa", "to": "Neffa", "weight": 124}, {"from": "Brokenspeakers", "to": "Brokenspeakers", "weight": 22}, {"from": "Brokenspeakers", "to": "Lucci", "weight": 10}, {"from": "Night Skinny", "to": "Night Skinny", "weight": 77}, {"from": "Night Skinny", "to": "Johnny Marsiglia", "weight": 2}, {"from": "Pinguini Tattici Nucleari", "to": "Pinguini Tattici Nucleari", "weight": 42}, {"from": "Motta", "to": "Motta", "weight": 53}, {"from": "Ex-Otago", "to": "Ex-Otago", "weight": 71}, {"from": "Thegiornalisti", "to": "Thegiornalisti", "weight": 51}, {"from": "Brunori Sas", "to": "Brunori Sas", "weight": 50}, {"from": "Franco126", "to": "Franco126", "weight": 21}, {"from": "Lo Stato Sociale", "to": "Lo Stato Sociale", "weight": 83}, {"from": "Fast Animals and Slow Kids", "to": "Fast Animals and Slow Kids", "weight": 63}, {"from": "AIELLO", "to": "AIELLO", "weight": 17}, {"from": "MV Killa", "to": "MV Killa", "weight": 24}, {"from": "CoCo", "to": "CoCo", "weight": 50}, {"from": "Canesecco", "to": "Canesecco", "weight": 36}, {"from": "SAC1", "to": "SAC1", "weight": 56}, {"from": "En?gma", "to": "En?gma", "weight": 93}, {"from": "Blue Virus", "to": "Blue Virus", "weight": 88}, {"from": "Cranio Randagio", "to": "Cranio Randagio", "weight": 60}, {"from": "Mezzosangue", "to": "Mezzosangue", "weight": 30}, {"from": "Noyz Narcos \u0026 Fritz Da Cat", "to": "Noyz Narcos \u0026 Fritz Da Cat", "weight": 10}, {"from": "Johnny Marsiglia", "to": "Johnny Marsiglia", "weight": 39}, {"from": "Cicco Sanchez", "to": "Cicco Sanchez", "weight": 4}, {"from": "I Cani", "to": "I Cani", "weight": 30}, {"from": "Murubutu", "to": "Murubutu", "weight": 101}, {"from": "CIMINI", "to": "CIMINI", "weight": 14}, {"from": "The Zen Circus", "to": "The Zen Circus", "weight": 130}, {"from": "Colapesce", "to": "Colapesce", "weight": 70}, {"from": "Tre Allegri Ragazzi Morti", "to": "Tre Allegri Ragazzi Morti", "weight": 217}, {"from": "Rancore", "to": "Rancore", "weight": 55}, {"from": "Funk Shui Project", "to": "Funk Shui Project", "weight": 52}, {"from": "Eugenio In Via Di Gioia", "to": "Eugenio In Via Di Gioia", "weight": 42}, {"from": "Galeffi", "to": "Galeffi", "weight": 18}, {"from": "Margherita Vicario", "to": "Margherita Vicario", "weight": 20}, {"from": "Dente", "to": "Dente", "weight": 94}, {"from": "Gomma", "to": "Gomma", "weight": 28}, {"from": "Baustelle", "to": "Baustelle", "weight": 130}, {"from": "Joan Thiele", "to": "Joan Thiele", "weight": 23}, {"from": "Generic Animal", "to": "Generic Animal", "weight": 26}, {"from": "Ceri", "to": "Ceri", "weight": 12}, {"from": "Francesco De Leo", "to": "Francesco De Leo", "weight": 16}, {"from": "Venerus", "to": "Venerus", "weight": 13}, {"from": "Viito", "to": "Viito", "weight": 7}, {"from": "Masamasa", "to": "Masamasa", "weight": 7}, {"from": "Uomini Di Mare", "to": "Uomini Di Mare", "weight": 7}, {"from": "Turi", "to": "Turi", "weight": 92}, {"from": "Microspasmi", "to": "Microspasmi", "weight": 24}, {"from": "Articolo 31", "to": "Articolo 31", "weight": 179}, {"from": "Piotta", "to": "Piotta", "weight": 172}, {"from": "Flaminio Maphia", "to": "Flaminio Maphia", "weight": 71}, {"from": "Brusco", "to": "Brusco", "weight": 84}, {"from": "DJ Gruff", "to": "DJ Gruff", "weight": 45}, {"from": "Otierre", "to": "Otierre", "weight": 10}, {"from": "Assalti Frontali", "to": "Assalti Frontali", "weight": 117}, {"from": "Egreen", "to": "Egreen", "weight": 105}, {"from": "Micromala", "to": "Micromala", "weight": 36}, {"from": "Primo Squarta", "to": "Primo Squarta", "weight": 13}, {"from": "Mr. Phil", "to": "Mr. Phil", "weight": 111}, {"from": "Mr. Phil", "to": "Il Turco", "weight": 5}, {"from": "Aban", "to": "Aban", "weight": 138}, {"from": "Zampa", "to": "Zampa", "weight": 113}, {"from": "Lucariello", "to": "Lucariello", "weight": 64}, {"from": "La Famiglia", "to": "La Famiglia", "weight": 40}, {"from": "Chicoria", "to": "Chicoria", "weight": 132}, {"from": "Il Turco", "to": "Il Turco", "weight": 31}, {"from": "Lucci", "to": "Lucci", "weight": 39}, {"from": "DJ Fede", "to": "DJ Fede", "weight": 232}, {"from": "Gilmar", "to": "Gilmar", "weight": 9}, {"from": "Videomind", "to": "Videomind", "weight": 9}, {"from": "Deleterio", "to": "Deleterio", "weight": 13}, {"from": "Vincenzo Da Via Anfossi", "to": "Vincenzo Da Via Anfossi", "weight": 23}, {"from": "Danti", "to": "Danti", "weight": 14}, {"from": "One Mic", "to": "One Mic", "weight": 25}, {"from": "Swelto", "to": "Swelto", "weight": 91}, {"from": "Gli Inquilini", "to": "Gli Inquilini", "weight": 65}, {"from": "DJ Enzo", "to": "DJ Enzo", "weight": 40}, {"from": "Huga Flame", "to": "Huga Flame", "weight": 68}, {"from": "Sud Sound System", "to": "Sud Sound System", "weight": 214}, {"from": "99 Posse", "to": "99 Posse", "weight": 127}, {"from": "Gemelli Diversi", "to": "Gemelli Diversi", "weight": 122}]);
+
+        // adding nodes and edges to the graph
+        data = {nodes: nodes, edges: edges};
+
+        var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": false,
+            "type": "continuous"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+        
+        
+
+        
+
+        network = new vis.Network(container, data, options);
+	 
+        
+
+
+        
+        network.on("stabilizationProgress", function(params) {
+      		document.getElementById('loadingBar').removeAttribute("style");
+	        var maxWidth = 496;
+	        var minWidth = 20;
+	        var widthFactor = params.iterations/params.total;
+	        var width = Math.max(minWidth,maxWidth * widthFactor);
+
+	        document.getElementById('bar').style.width = width + 'px';
+	        document.getElementById('text').innerHTML = Math.round(widthFactor*100) + '%';
+	    });
+	    network.once("stabilizationIterationsDone", function() {
+	        document.getElementById('text').innerHTML = '100%';
+	        document.getElementById('bar').style.width = '496px';
+	        document.getElementById('loadingBar').style.opacity = 0;
+	        // really clean the dom element
+	        setTimeout(function () {document.getElementById('loadingBar').style.display = 'none';}, 500);
+	    });
+        
+
+        return network;
+
+    }
+
+    drawGraph();
+
+</script>
+</body>
+</html>

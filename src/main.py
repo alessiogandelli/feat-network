@@ -68,6 +68,14 @@ def get_related_artists(artist_uri):
         rel = spotify.artist_related_artists(artist)
         for art in rel['artists']:
             artists[art['name']] = art['uri']
+
+    artists3 = artists.copy() #altrimenti non posso iterare ed aggiugere
+
+    #for each related artist add its related artists 
+    for artist in artists3.values():
+        rel = spotify.artist_related_artists(artist)
+        for art in rel['artists']:
+            artists[art['name']] = art['uri']
     
     artists['Tedua'] = artist_uri
     return artists
@@ -99,32 +107,43 @@ def clean_album_gae(artist_id):
         del titles[ele]
     return titles
 
+#compute df adjacency matrix 
+def get_df(artist_uri):
+ 
+    df = pd.DataFrame(columns=artists.keys())
 
-# %%
+    #get featurings
+    for artist in artists.values():
+        get_feat(artist,df)
+
+    #fill dataframe
+    for artist, friends in feat.items():
+        for friend, nfeat in friends.items():
+            df.at[artist, friend] = nfeat
+    
+
+            
+    df = df.fillna(0)
+    print(df)
+    return df
+
+# %% start from tedua and get related artists 
+artists = get_related_artists(tedua)
 get_uri = {} 
 feat = {} 
-artists = get_related_artists(tedua)
-df = pd.DataFrame(columns=artists.keys())
+df = get_df(tedua)
 
 
-for artist in artists.values():
-     get_feat(artist,df)
 
-
-for artist, friends in feat.items():
-    for friend, nfeat in friends.items():
-        df.at[artist, friend] = nfeat
-        
-df = df.fillna(0)
-
-print('prova branch')
-
-# %% considera solo chi ha fatto più di un feat 
-df = df -1 
+# %% crea grafo nel file html
+# 
+# 
+#considera solo chi ha fatto più di un feat 
+df = df -2
 df[df < 0] = 0
 
-G = nx.from_pandas_adjacency(df)
-net = Network()
+G = nx.from_pandas_adjacency(df) # graph 
+net = Network() # network
 net.from_nx(G)
-net.show('example.html')
+net.show('feat.html')
 # %%
