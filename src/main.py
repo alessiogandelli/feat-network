@@ -135,9 +135,7 @@ df = get_df(tedua)
 
 
 
-# %% crea grafo nel file html
-# 
-# 
+# %% crea diversi grafi 
 #considera solo chi ha fatto più di uno due e tre feat 
 df3 = df -3 
 df3[df3 < 0] = 0
@@ -155,6 +153,7 @@ G3 = nx.from_pandas_adjacency(df3) # graph
 
 #%% graph analysis 
 G = G0
+
 print(nx.info(G))
 print(nx.density(G))
 
