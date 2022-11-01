@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 docs/
+
+.DS_Store
