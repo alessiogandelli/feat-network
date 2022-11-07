@@ -1,0 +1,334 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+                <link href="lib/tom-select/tom-select.css" rel="stylesheet">
+                <script src="lib/tom-select/tom-select.complete.min.js"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 1000px;
+                 height: 1000px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+              <div id="filter-menu" class="card-header">
+                <div class="row no-gutters">
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            onchange="updateFilter(value, 'item')"
+                            id="select-item"
+                        >
+                        <option value="">Select a network item</option>
+                        <option value="edge">edge</option>
+                        <option value="node">node</option>
+                    </select>
+                  </div>
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            onchange="updateFilter(value, 'property')"
+                            id="select-property"
+                        >
+                        <option value="">Select a property...</option>
+                    </select>
+                  </div>
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            id="select-value"
+                        >
+                        <option value="">Select value(s)...</option>
+                    </select>
+                  </div>
+                  <div class="col-1 pb-2">
+                    <button type="button" class="btn btn-primary btn-block" onclick="highlightFilter(filter);">Filter</button>
+                  </div>
+                  <div class="col-2 pb-2">
+                    <button type="button" class="btn btn-primary btn-block" onclick="clearFilter(true)">Reset Selection</button>
+                  </div>
+                </div>
+              </div>
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+                  // explicitly using onItemAdd and this function as we need to save multiple values
+                  let updateValueFilter = function() {
+                      return function () {
+                      filter['value'].push(arguments[0])
+                      }
+                  }
+
+                  let valueControl = new TomSelect("#select-value",{
+                      maxItems: null,
+                      valueField: 'id',
+                      labelField: 'title',
+                      searchField: 'title',
+                      create: false,
+                      sortField: {
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: updateValueFilter()
+                  });
+
+                  let addValues = function() {
+                      return function () {
+                          // clear the current value options and add the selected attribute values
+                          // tom-select handles duplicates
+                          let selectedProperty = arguments[0];
+                          valueControl.clear();
+                          valueControl.clearOptions();
+                          filter['value'] = []
+                          if (filter['item'] === 'node') {
+                              for (let each in allNodes) {
+                                  valueControl.addOption({
+                                      id:allNodes[each][selectedProperty],
+                                      title:allNodes[each][selectedProperty]
+                                  })
+                              }
+                          }
+                          else if (filter['item'] === 'edge') {
+                              for (let each in allEdges) {
+                                  valueControl.addOption({
+                                      id:allEdges[each][selectedProperty],
+                                      title:allEdges[each][selectedProperty]
+                                  })
+                              }
+                          }
+                      }
+                  };
+
+                  let propControl = new TomSelect("#select-property",{
+                      valueField: 'id',
+                      labelField: 'title',
+                      searchField: 'title',
+                      create: false,
+                      sortField: {
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: addValues()
+                  });
+
+                  let addProperties = function() {
+                      return function () {
+                          // loops through the selected network item and adds the attributes to dropdown
+                          // tom-select handles duplicates
+                          clearFilter(false)
+                          if (arguments[0] === 'edge') {
+                              for (let each in allEdges) {
+                                  if (allEdges.hasOwnProperty(each)) {
+                                      for (let eachProp in allEdges[each]) {
+                                          if (allEdges[each].hasOwnProperty(eachProp)) {
+                                              propControl.addOption({id: eachProp, title: eachProp})
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                          else if (arguments[0] === 'node') {
+                              for (let each in allNodes) {
+                                  if (allNodes.hasOwnProperty(each)) {
+                                      for (let eachProp in allNodes[each]) {
+                                          if (allNodes[each].hasOwnProperty(eachProp)
+                                              && (eachProp !== 'hidden' && eachProp !== 'savedLabel'
+                                                  && eachProp !== 'hiddenLabel')) {
+                                              propControl.addOption({id: eachProp, title: eachProp})
+
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  };
+
+                  let itemControl = new TomSelect("#select-item",{
+                      create: false,
+                      sortField:{
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: addProperties()
+                  });
+
+                  function clearFilter(reset) {
+                      // utility function to clear all the selected filter options
+                      // if reset is set to true, the existing filter will be removed
+                      // else, only the dropdown options are cleared
+                      propControl.clear();
+                      propControl.clearOptions();
+                      valueControl.clear();
+                      valueControl.clearOptions();
+                      filter = {
+                          item : '',
+                          property : '',
+                          value : []
+                      }
+                      if (reset) {
+                          itemControl.clear();
+                          filterHighlight({nodes: []})
+                      }
+                  }
+
+                  function updateFilter(value, key) {
+                      // key could be 'item' or 'property' and value is as selected in dropdown
+                      filter[key] = value
+                  }
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "Vegas Jones", "label": "Vegas Jones", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "MadMan", "label": "MadMan", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Emis Killa", "label": "Emis Killa", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Gemitaiz", "label": "Gemitaiz", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Gu\u00e8", "label": "Gu\u00e8", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Nayt", "label": "Nayt", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Salmo", "label": "Salmo", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "MamboLosco", "label": "MamboLosco", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Bassi Maestro", "label": "Bassi Maestro", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Fabri Fibra", "label": "Fabri Fibra", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Jake La Furia", "label": "Jake La Furia", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Lazza", "label": "Lazza", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Capo Plaza", "label": "Capo Plaza", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Dark Polo Gang", "label": "Dark Polo Gang", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Ernia", "label": "Ernia", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Sfera Ebbasta", "label": "Sfera Ebbasta", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Noyz Narcos", "label": "Noyz Narcos", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Tedua", "label": "Tedua", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Marracash", "label": "Marracash", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Dani Faiv", "label": "Dani Faiv", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Axos", "label": "Axos", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "DrefGold", "label": "DrefGold", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "thasup", "label": "thasup", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Jack The Smoker", "label": "Jack The Smoker", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Ensi", "label": "Ensi", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Fred De Palma", "label": "Fred De Palma", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Coez", "label": "Coez", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Clementino", "label": "Clementino", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Cor Veleno", "label": "Cor Veleno", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Vale Lambo", "label": "Vale Lambo", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Two Fingerz", "label": "Two Fingerz", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Ghali", "label": "Ghali", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Achille Lauro", "label": "Achille Lauro", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Sick Luke", "label": "Sick Luke", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "TY1", "label": "TY1", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Ketama126", "label": "Ketama126", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Carl Brave", "label": "Carl Brave", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Don Joe", "label": "Don Joe", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Gianni Bismark", "label": "Gianni Bismark", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Drone126", "label": "Drone126", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Bresh", "label": "Bresh", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Gemello", "label": "Gemello", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "2nd Roof", "label": "2nd Roof", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Fedez", "label": "Fedez", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Enzo Dong", "label": "Enzo Dong", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Boro Boro", "label": "Boro Boro", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Rkomi", "label": "Rkomi", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Gazzelle", "label": "Gazzelle", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Dargen D\u0027Amico", "label": "Dargen D\u0027Amico", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Quentin40", "label": "Quentin40", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Cosmo", "label": "Cosmo", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Mecna", "label": "Mecna", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Carl Brave x Franco126", "label": "Carl Brave x Franco126", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Club Dogo", "label": "Club Dogo", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Nerone", "label": "Nerone", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Mondo Marcio", "label": "Mondo Marcio", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Vacca", "label": "Vacca", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Frah Quintale", "label": "Frah Quintale", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Nex Cassel", "label": "Nex Cassel", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Inoki", "label": "Inoki", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Metal Carter", "label": "Metal Carter", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Nashley", "label": "Nashley", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Zoda", "label": "Zoda", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Pop X", "label": "Pop X", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Coma_Cose", "label": "Coma_Cose", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "DJ Shocca", "label": "DJ Shocca", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Co\u0027Sang", "label": "Co\u0027Sang", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Willie Peyote", "label": "Willie Peyote", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Tauro Boys", "label": "Tauro Boys", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "BLANCO", "label": "BLANCO", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Highsnob", "label": "Highsnob", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "JUNIOR CALLY", "label": "JUNIOR CALLY", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "G.bit", "label": "G.bit", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "LIBERATO", "label": "LIBERATO", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Mistaman", "label": "Mistaman", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Thegiornalisti", "label": "Thegiornalisti", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Colle Der Fomento", "label": "Colle Der Fomento", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Lil Busso", "label": "Lil Busso", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Danien \u0026 The\u00f8", "label": "Danien \u0026 The\u00f8", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Jesto", "label": "Jesto", "shape": "dot", "size": 10}, {"color": "#97c2fc", "id": "Charlie Charles", "label": "Charlie Charles", "shape": "dot", "size": 10}]);
+                  edges = new vis.DataSet([{"from": "Vegas Jones", "length": 0.011111111111111112, "to": "Vegas Jones", "width": 1}, {"from": "Vegas Jones", "length": 0.3333333333333333, "to": "MadMan", "width": 1}, {"from": "Vegas Jones", "length": 0.5, "to": "Emis Killa", "width": 1}, {"from": "Vegas Jones", "length": 0.3333333333333333, "to": "Gemitaiz", "width": 1}, {"from": "Vegas Jones", "length": 0.3333333333333333, "to": "Gu\u00e8", "width": 1}, {"from": "Vegas Jones", "length": 0.5, "to": "Nayt", "width": 1}, {"from": "Vegas Jones", "length": 0.5, "to": "Salmo", "width": 1}, {"from": "Vegas Jones", "length": 0.5, "to": "MamboLosco", "width": 1}, {"from": "Vegas Jones", "length": 0.5, "to": "Bassi Maestro", "width": 1}, {"from": "Vegas Jones", "length": 0.5, "to": "Fabri Fibra", "width": 1}, {"from": "Vegas Jones", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Lazza", "length": 0.017857142857142856, "to": "Lazza", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Capo Plaza", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Dark Polo Gang", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Ernia", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Sfera Ebbasta", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Emis Killa", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Noyz Narcos", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Gemitaiz", "width": 1}, {"from": "Lazza", "length": 0.3333333333333333, "to": "Gu\u00e8", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Tedua", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Salmo", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Marracash", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Dani Faiv", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Axos", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Bassi Maestro", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Fabri Fibra", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "DrefGold", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Lazza", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Lazza", "length": 0.25, "to": "Jake La Furia", "width": 1}, {"from": "MadMan", "length": 0.00980392156862745, "to": "MadMan", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Emis Killa", "width": 1}, {"from": "MadMan", "length": 0.025, "to": "Gemitaiz", "width": 1}, {"from": "MadMan", "length": 0.3333333333333333, "to": "Gu\u00e8", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Ensi", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Fred De Palma", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Salmo", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Marracash", "width": 1}, {"from": "MadMan", "length": 0.3333333333333333, "to": "Coez", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Bassi Maestro", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Fabri Fibra", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Cor Veleno", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Vale Lambo", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "thasup", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "MadMan", "length": 0.3333333333333333, "to": "Jake La Furia", "width": 1}, {"from": "MadMan", "length": 0.5, "to": "Two Fingerz", "width": 1}, {"from": "Capo Plaza", "length": 0.018867924528301886, "to": "Capo Plaza", "width": 1}, {"from": "Capo Plaza", "length": 0.3333333333333333, "to": "Dark Polo Gang", "width": 1}, {"from": "Capo Plaza", "length": 0.5, "to": "Ghali", "width": 1}, {"from": "Capo Plaza", "length": 0.5, "to": "Achille Lauro", "width": 1}, {"from": "Capo Plaza", "length": 0.3333333333333333, "to": "Sfera Ebbasta", "width": 1}, {"from": "Capo Plaza", "length": 0.5, "to": "Emis Killa", "width": 1}, {"from": "Capo Plaza", "length": 0.3333333333333333, "to": "Noyz Narcos", "width": 1}, {"from": "Capo Plaza", "length": 0.5, "to": "Gu\u00e8", "width": 1}, {"from": "Capo Plaza", "length": 0.5, "to": "Sick Luke", "width": 1}, {"from": "Capo Plaza", "length": 0.3333333333333333, "to": "TY1", "width": 1}, {"from": "Capo Plaza", "length": 0.5, "to": "DrefGold", "width": 1}, {"from": "Ketama126", "length": 0.0136986301369863, "to": "Ketama126", "width": 1}, {"from": "Ketama126", "length": 0.5, "to": "Dark Polo Gang", "width": 1}, {"from": "Ketama126", "length": 0.3333333333333333, "to": "Carl Brave", "width": 1}, {"from": "Ketama126", "length": 0.3333333333333333, "to": "Noyz Narcos", "width": 1}, {"from": "Ketama126", "length": 0.5, "to": "Gu\u00e8", "width": 1}, {"from": "Ketama126", "length": 0.3333333333333333, "to": "Sick Luke", "width": 1}, {"from": "Ketama126", "length": 0.5, "to": "Don Joe", "width": 1}, {"from": "Ketama126", "length": 0.5, "to": "Tedua", "width": 1}, {"from": "Ketama126", "length": 0.3333333333333333, "to": "Gianni Bismark", "width": 1}, {"from": "Ketama126", "length": 0.14285714285714285, "to": "Drone126", "width": 1}, {"from": "Ketama126", "length": 0.5, "to": "TY1", "width": 1}, {"from": "Ketama126", "length": 0.5, "to": "Bresh", "width": 1}, {"from": "Ketama126", "length": 0.5, "to": "Fabri Fibra", "width": 1}, {"from": "Ketama126", "length": 0.5, "to": "Gemello", "width": 1}, {"from": "Ketama126", "length": 0.5, "to": "2nd Roof", "width": 1}, {"from": "Dark Polo Gang", "length": 0.01, "to": "Dark Polo Gang", "width": 1}, {"from": "Dark Polo Gang", "length": 0.25, "to": "Sfera Ebbasta", "width": 1}, {"from": "Dark Polo Gang", "length": 0.5, "to": "Gu\u00e8", "width": 1}, {"from": "Dark Polo Gang", "length": 0.3333333333333333, "to": "Tedua", "width": 1}, {"from": "Dark Polo Gang", "length": 0.5, "to": "Salmo", "width": 1}, {"from": "Dark Polo Gang", "length": 0.5, "to": "Gianni Bismark", "width": 1}, {"from": "Dark Polo Gang", "length": 0.3333333333333333, "to": "MamboLosco", "width": 1}, {"from": "Dark Polo Gang", "length": 0.5, "to": "Fedez", "width": 1}, {"from": "Dark Polo Gang", "length": 0.5, "to": "DrefGold", "width": 1}, {"from": "Dark Polo Gang", "length": 0.5, "to": "Enzo Dong", "width": 1}, {"from": "Dark Polo Gang", "length": 0.5, "to": "Boro Boro", "width": 1}, {"from": "Ghali", "length": 0.014925373134328358, "to": "Ghali", "width": 1}, {"from": "Ghali", "length": 0.5, "to": "Rkomi", "width": 1}, {"from": "Ghali", "length": 0.5, "to": "Achille Lauro", "width": 1}, {"from": "Ghali", "length": 0.5, "to": "Sick Luke", "width": 1}, {"from": "Ghali", "length": 0.5, "to": "Salmo", "width": 1}, {"from": "Ghali", "length": 0.5, "to": "Marracash", "width": 1}, {"from": "Ghali", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Rkomi", "length": 0.013513513513513514, "to": "Rkomi", "width": 1}, {"from": "Rkomi", "length": 0.3333333333333333, "to": "Ernia", "width": 1}, {"from": "Rkomi", "length": 0.25, "to": "Sfera Ebbasta", "width": 1}, {"from": "Rkomi", "length": 0.5, "to": "Carl Brave", "width": 1}, {"from": "Rkomi", "length": 0.5, "to": "Noyz Narcos", "width": 1}, {"from": "Rkomi", "length": 0.5, "to": "Tedua", "width": 1}, {"from": "Rkomi", "length": 0.5, "to": "TY1", "width": 1}, {"from": "Rkomi", "length": 0.5, "to": "Marracash", "width": 1}, {"from": "Rkomi", "length": 0.5, "to": "Gazzelle", "width": 1}, {"from": "Rkomi", "length": 0.25, "to": "Bresh", "width": 1}, {"from": "Rkomi", "length": 0.5, "to": "Dargen D\u0027Amico", "width": 1}, {"from": "Rkomi", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Achille Lauro", "length": 0.009259259259259259, "to": "Achille Lauro", "width": 1}, {"from": "Achille Lauro", "length": 0.5, "to": "Noyz Narcos", "width": 1}, {"from": "Achille Lauro", "length": 0.125, "to": "Gemitaiz", "width": 1}, {"from": "Achille Lauro", "length": 0.5, "to": "Fred De Palma", "width": 1}, {"from": "Achille Lauro", "length": 0.5, "to": "Quentin40", "width": 1}, {"from": "Achille Lauro", "length": 0.3333333333333333, "to": "Marracash", "width": 1}, {"from": "Achille Lauro", "length": 0.25, "to": "Coez", "width": 1}, {"from": "Achille Lauro", "length": 0.5, "to": "Cosmo", "width": 1}, {"from": "Achille Lauro", "length": 0.5, "to": "Fedez", "width": 1}, {"from": "Achille Lauro", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Ernia", "length": 0.029411764705882353, "to": "Ernia", "width": 1}, {"from": "Ernia", "length": 0.3333333333333333, "to": "Gu\u00e8", "width": 1}, {"from": "Ernia", "length": 0.5, "to": "Sick Luke", "width": 1}, {"from": "Ernia", "length": 0.3333333333333333, "to": "Don Joe", "width": 1}, {"from": "Ernia", "length": 0.3333333333333333, "to": "Tedua", "width": 1}, {"from": "Ernia", "length": 0.5, "to": "Salmo", "width": 1}, {"from": "Ernia", "length": 0.5, "to": "TY1", "width": 1}, {"from": "Ernia", "length": 0.5, "to": "Fabri Fibra", "width": 1}, {"from": "Ernia", "length": 0.5, "to": "Mecna", "width": 1}, {"from": "Sfera Ebbasta", "length": 0.01818181818181818, "to": "Sfera Ebbasta", "width": 1}, {"from": "Sfera Ebbasta", "length": 0.5, "to": "Noyz Narcos", "width": 1}, {"from": "Sfera Ebbasta", "length": 0.5, "to": "Gemitaiz", "width": 1}, {"from": "Sfera Ebbasta", "length": 0.3333333333333333, "to": "Gu\u00e8", "width": 1}, {"from": "Sfera Ebbasta", "length": 0.5, "to": "Sick Luke", "width": 1}, {"from": "Sfera Ebbasta", "length": 0.5, "to": "Tedua", "width": 1}, {"from": "Sfera Ebbasta", "length": 0.5, "to": "Salmo", "width": 1}, {"from": "Sfera Ebbasta", "length": 0.25, "to": "Marracash", "width": 1}, {"from": "Sfera Ebbasta", "length": 0.5, "to": "DrefGold", "width": 1}, {"from": "Sfera Ebbasta", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Carl Brave x Franco126", "length": 0.06666666666666667, "to": "Carl Brave x Franco126", "width": 1}, {"from": "Carl Brave x Franco126", "length": 0.5, "to": "Noyz Narcos", "width": 1}, {"from": "Emis Killa", "length": 0.006896551724137931, "to": "Emis Killa", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Carl Brave", "width": 1}, {"from": "Emis Killa", "length": 0.25, "to": "Gemitaiz", "width": 1}, {"from": "Emis Killa", "length": 0.25, "to": "Gu\u00e8", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Sick Luke", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Don Joe", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Tedua", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Club Dogo", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Fred De Palma", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Nayt", "width": 1}, {"from": "Emis Killa", "length": 0.3333333333333333, "to": "Salmo", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Marracash", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Coez", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Dani Faiv", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Nerone", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Axos", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Fedez", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Bassi Maestro", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Mondo Marcio", "width": 1}, {"from": "Emis Killa", "length": 0.25, "to": "Fabri Fibra", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Vacca", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Emis Killa", "length": 0.047619047619047616, "to": "Jake La Furia", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "2nd Roof", "width": 1}, {"from": "Emis Killa", "length": 0.5, "to": "Two Fingerz", "width": 1}, {"from": "Carl Brave", "length": 0.021739130434782608, "to": "Carl Brave", "width": 1}, {"from": "Carl Brave", "length": 0.3333333333333333, "to": "Gemitaiz", "width": 1}, {"from": "Carl Brave", "length": 0.5, "to": "Gu\u00e8", "width": 1}, {"from": "Carl Brave", "length": 0.5, "to": "Sick Luke", "width": 1}, {"from": "Carl Brave", "length": 0.5, "to": "Coez", "width": 1}, {"from": "Carl Brave", "length": 0.5, "to": "Frah Quintale", "width": 1}, {"from": "Carl Brave", "length": 0.5, "to": "Fabri Fibra", "width": 1}, {"from": "Carl Brave", "length": 0.5, "to": "Gemello", "width": 1}, {"from": "Carl Brave", "length": 0.5, "to": "Vale Lambo", "width": 1}, {"from": "Carl Brave", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Noyz Narcos", "length": 0.009523809523809525, "to": "Noyz Narcos", "width": 1}, {"from": "Noyz Narcos", "length": 0.5, "to": "Gemitaiz", "width": 1}, {"from": "Noyz Narcos", "length": 0.3333333333333333, "to": "Gu\u00e8", "width": 1}, {"from": "Noyz Narcos", "length": 0.3333333333333333, "to": "Don Joe", "width": 1}, {"from": "Noyz Narcos", "length": 0.3333333333333333, "to": "Club Dogo", "width": 1}, {"from": "Noyz Narcos", "length": 0.5, "to": "Ensi", "width": 1}, {"from": "Noyz Narcos", "length": 0.5, "to": "Salmo", "width": 1}, {"from": "Noyz Narcos", "length": 0.5, "to": "TY1", "width": 1}, {"from": "Noyz Narcos", "length": 0.5, "to": "Marracash", "width": 1}, {"from": "Noyz Narcos", "length": 0.3333333333333333, "to": "Coez", "width": 1}, {"from": "Noyz Narcos", "length": 0.5, "to": "Vacca", "width": 1}, {"from": "Noyz Narcos", "length": 0.3333333333333333, "to": "Clementino", "width": 1}, {"from": "Noyz Narcos", "length": 0.3333333333333333, "to": "Nex Cassel", "width": 1}, {"from": "Noyz Narcos", "length": 0.5, "to": "Inoki", "width": 1}, {"from": "Noyz Narcos", "length": 0.125, "to": "Metal Carter", "width": 1}, {"from": "Noyz Narcos", "length": 0.25, "to": "Gemello", "width": 1}, {"from": "Noyz Narcos", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Noyz Narcos", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Gemitaiz", "length": 0.007633587786259542, "to": "Gemitaiz", "width": 1}, {"from": "Gemitaiz", "length": 0.2, "to": "Gu\u00e8", "width": 1}, {"from": "Gemitaiz", "length": 0.3333333333333333, "to": "Don Joe", "width": 1}, {"from": "Gemitaiz", "length": 0.2, "to": "Ensi", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Nayt", "width": 1}, {"from": "Gemitaiz", "length": 0.3333333333333333, "to": "Salmo", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Gianni Bismark", "width": 1}, {"from": "Gemitaiz", "length": 0.3333333333333333, "to": "Marracash", "width": 1}, {"from": "Gemitaiz", "length": 0.25, "to": "Coez", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Dani Faiv", "width": 1}, {"from": "Gemitaiz", "length": 0.25, "to": "Nerone", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Fedez", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Bassi Maestro", "width": 1}, {"from": "Gemitaiz", "length": 0.3333333333333333, "to": "Mondo Marcio", "width": 1}, {"from": "Gemitaiz", "length": 0.25, "to": "Fabri Fibra", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Cor Veleno", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Gemello", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Enzo Dong", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Gemitaiz", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Gemitaiz", "length": 0.3333333333333333, "to": "2nd Roof", "width": 1}, {"from": "Gu\u00e8", "length": 0.005714285714285714, "to": "Gu\u00e8", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Sick Luke", "width": 1}, {"from": "Gu\u00e8", "length": 0.06666666666666667, "to": "Don Joe", "width": 1}, {"from": "Gu\u00e8", "length": 0.25, "to": "Ensi", "width": 1}, {"from": "Gu\u00e8", "length": 0.3333333333333333, "to": "Fred De Palma", "width": 1}, {"from": "Gu\u00e8", "length": 0.3333333333333333, "to": "Salmo", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "TY1", "width": 1}, {"from": "Gu\u00e8", "length": 0.038461538461538464, "to": "Marracash", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Coez", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Frah Quintale", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Fedez", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Bassi Maestro", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Mondo Marcio", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Fabri Fibra", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Vacca", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Nex Cassel", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Inoki", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Mecna", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "DrefGold", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Nashley", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Vale Lambo", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Gu\u00e8", "length": 0.25, "to": "Jake La Furia", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "2nd Roof", "width": 1}, {"from": "Gu\u00e8", "length": 0.5, "to": "Two Fingerz", "width": 1}, {"from": "Sick Luke", "length": 0.011235955056179775, "to": "Sick Luke", "width": 1}, {"from": "Sick Luke", "length": 0.25, "to": "Tedua", "width": 1}, {"from": "Sick Luke", "length": 0.3333333333333333, "to": "Gianni Bismark", "width": 1}, {"from": "Sick Luke", "length": 0.5, "to": "Coez", "width": 1}, {"from": "Sick Luke", "length": 0.5, "to": "Gazzelle", "width": 1}, {"from": "Sick Luke", "length": 0.3333333333333333, "to": "Zoda", "width": 1}, {"from": "Sick Luke", "length": 0.5, "to": "Cosmo", "width": 1}, {"from": "Sick Luke", "length": 0.5, "to": "Pop X", "width": 1}, {"from": "Sick Luke", "length": 0.5, "to": "Fabri Fibra", "width": 1}, {"from": "Sick Luke", "length": 0.08333333333333333, "to": "Mecna", "width": 1}, {"from": "Sick Luke", "length": 0.5, "to": "Enzo Dong", "width": 1}, {"from": "Sick Luke", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Sick Luke", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Don Joe", "length": 0.008547008547008548, "to": "Don Joe", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Club Dogo", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Ensi", "width": 1}, {"from": "Don Joe", "length": 0.07692307692307693, "to": "Marracash", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Coma_Cose", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Fedez", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Bassi Maestro", "width": 1}, {"from": "Don Joe", "length": 0.2, "to": "Fabri Fibra", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Vacca", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Clementino", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Dargen D\u0027Amico", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Nex Cassel", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "DJ Shocca", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Jack The Smoker", "width": 1}, {"from": "Don Joe", "length": 0.06666666666666667, "to": "Jake La Furia", "width": 1}, {"from": "Don Joe", "length": 0.3333333333333333, "to": "Co\u0027Sang", "width": 1}, {"from": "Tedua", "length": 0.5, "to": "Gianni Bismark", "width": 1}, {"from": "Tedua", "length": 0.3333333333333333, "to": "Bresh", "width": 1}, {"from": "Tedua", "length": 0.25, "to": "Fedez", "width": 1}, {"from": "Tedua", "length": 0.5, "to": "Dargen D\u0027Amico", "width": 1}, {"from": "Tedua", "length": 0.5, "to": "Inoki", "width": 1}, {"from": "Tedua", "length": 0.5, "to": "Mecna", "width": 1}, {"from": "Tedua", "length": 0.5, "to": "DrefGold", "width": 1}, {"from": "Tedua", "length": 0.5, "to": "Enzo Dong", "width": 1}, {"from": "Tedua", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Club Dogo", "length": 0.008695652173913044, "to": "Club Dogo", "width": 1}, {"from": "Club Dogo", "length": 0.5, "to": "Ensi", "width": 1}, {"from": "Club Dogo", "length": 0.14285714285714285, "to": "Marracash", "width": 1}, {"from": "Club Dogo", "length": 0.5, "to": "Bassi Maestro", "width": 1}, {"from": "Club Dogo", "length": 0.5, "to": "Dargen D\u0027Amico", "width": 1}, {"from": "Club Dogo", "length": 0.3333333333333333, "to": "Nex Cassel", "width": 1}, {"from": "Club Dogo", "length": 0.5, "to": "Inoki", "width": 1}, {"from": "Club Dogo", "length": 0.3333333333333333, "to": "DJ Shocca", "width": 1}, {"from": "Club Dogo", "length": 0.5, "to": "Co\u0027Sang", "width": 1}, {"from": "Ensi", "length": 0.01818181818181818, "to": "Ensi", "width": 1}, {"from": "Ensi", "length": 0.3333333333333333, "to": "Fred De Palma", "width": 1}, {"from": "Ensi", "length": 0.3333333333333333, "to": "Salmo", "width": 1}, {"from": "Ensi", "length": 0.5, "to": "Nerone", "width": 1}, {"from": "Ensi", "length": 0.5, "to": "Axos", "width": 1}, {"from": "Ensi", "length": 0.5, "to": "Willie Peyote", "width": 1}, {"from": "Ensi", "length": 0.5, "to": "Bassi Maestro", "width": 1}, {"from": "Ensi", "length": 0.3333333333333333, "to": "Mondo Marcio", "width": 1}, {"from": "Ensi", "length": 0.5, "to": "Vacca", "width": 1}, {"from": "Ensi", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Ensi", "length": 0.3333333333333333, "to": "Nex Cassel", "width": 1}, {"from": "Ensi", "length": 0.5, "to": "Gemello", "width": 1}, {"from": "Ensi", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Ensi", "length": 0.3333333333333333, "to": "Two Fingerz", "width": 1}, {"from": "Fred De Palma", "length": 0.011235955056179775, "to": "Fred De Palma", "width": 1}, {"from": "Fred De Palma", "length": 0.5, "to": "Marracash", "width": 1}, {"from": "Fred De Palma", "length": 0.3333333333333333, "to": "Boro Boro", "width": 1}, {"from": "Fred De Palma", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Nayt", "length": 0.014285714285714285, "to": "Nayt", "width": 1}, {"from": "Nayt", "length": 0.5, "to": "Dani Faiv", "width": 1}, {"from": "Nayt", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Nayt", "length": 0.5, "to": "Vale Lambo", "width": 1}, {"from": "Nayt", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Salmo", "length": 0.00909090909090909, "to": "Salmo", "width": 1}, {"from": "Salmo", "length": 0.5, "to": "Marracash", "width": 1}, {"from": "Salmo", "length": 0.5, "to": "Coez", "width": 1}, {"from": "Salmo", "length": 0.5, "to": "Dani Faiv", "width": 1}, {"from": "Salmo", "length": 0.5, "to": "Nerone", "width": 1}, {"from": "Salmo", "length": 0.5, "to": "Axos", "width": 1}, {"from": "Salmo", "length": 0.5, "to": "Bassi Maestro", "width": 1}, {"from": "Salmo", "length": 0.5, "to": "Fabri Fibra", "width": 1}, {"from": "Salmo", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Salmo", "length": 0.3333333333333333, "to": "thasup", "width": 1}, {"from": "Salmo", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Salmo", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Gianni Bismark", "length": 0.0196078431372549, "to": "Gianni Bismark", "width": 1}, {"from": "Gianni Bismark", "length": 0.5, "to": "Quentin40", "width": 1}, {"from": "Gianni Bismark", "length": 0.5, "to": "Drone126", "width": 1}, {"from": "Gianni Bismark", "length": 0.3333333333333333, "to": "Dani Faiv", "width": 1}, {"from": "Gianni Bismark", "length": 0.5, "to": "Nerone", "width": 1}, {"from": "Gianni Bismark", "length": 0.5, "to": "Nex Cassel", "width": 1}, {"from": "Gianni Bismark", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Gianni Bismark", "length": 0.5, "to": "2nd Roof", "width": 1}, {"from": "Quentin40", "length": 0.07142857142857142, "to": "Quentin40", "width": 1}, {"from": "Tauro Boys", "length": 0.021739130434782608, "to": "Tauro Boys", "width": 1}, {"from": "Drone126", "length": 0.08333333333333333, "to": "Drone126", "width": 1}, {"from": "BLANCO", "length": 0.07692307692307693, "to": "BLANCO", "width": 1}, {"from": "BLANCO", "length": 0.5, "to": "Marracash", "width": 1}, {"from": "MamboLosco", "length": 0.037037037037037035, "to": "MamboLosco", "width": 1}, {"from": "MamboLosco", "length": 0.5, "to": "Highsnob", "width": 1}, {"from": "MamboLosco", "length": 0.5, "to": "Enzo Dong", "width": 1}, {"from": "MamboLosco", "length": 0.5, "to": "Nashley", "width": 1}, {"from": "MamboLosco", "length": 0.08333333333333333, "to": "Boro Boro", "width": 1}, {"from": "TY1", "length": 0.034482758620689655, "to": "TY1", "width": 1}, {"from": "TY1", "length": 0.3333333333333333, "to": "Marracash", "width": 1}, {"from": "TY1", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Marracash", "length": 0.008, "to": "Marracash", "width": 1}, {"from": "Marracash", "length": 0.3333333333333333, "to": "Coez", "width": 1}, {"from": "Marracash", "length": 0.5, "to": "Cosmo", "width": 1}, {"from": "Marracash", "length": 0.5, "to": "Fedez", "width": 1}, {"from": "Marracash", "length": 0.3333333333333333, "to": "Fabri Fibra", "width": 1}, {"from": "Marracash", "length": 0.3333333333333333, "to": "Clementino", "width": 1}, {"from": "Marracash", "length": 0.5, "to": "Dargen D\u0027Amico", "width": 1}, {"from": "Marracash", "length": 0.5, "to": "Cor Veleno", "width": 1}, {"from": "Marracash", "length": 0.5, "to": "DJ Shocca", "width": 1}, {"from": "Marracash", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Marracash", "length": 0.3333333333333333, "to": "Jake La Furia", "width": 1}, {"from": "Marracash", "length": 0.25, "to": "Co\u0027Sang", "width": 1}, {"from": "Coez", "length": 0.0136986301369863, "to": "Coez", "width": 1}, {"from": "Coez", "length": 0.5, "to": "Frah Quintale", "width": 1}, {"from": "Coez", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Coez", "length": 0.3333333333333333, "to": "Cor Veleno", "width": 1}, {"from": "Coez", "length": 0.3333333333333333, "to": "Gemello", "width": 1}, {"from": "Coez", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Gazzelle", "length": 0.034482758620689655, "to": "Gazzelle", "width": 1}, {"from": "Gazzelle", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Highsnob", "length": 0.045454545454545456, "to": "Highsnob", "width": 1}, {"from": "Highsnob", "length": 0.3333333333333333, "to": "JUNIOR CALLY", "width": 1}, {"from": "Highsnob", "length": 0.5, "to": "Nerone", "width": 1}, {"from": "Highsnob", "length": 0.5, "to": "Axos", "width": 1}, {"from": "Highsnob", "length": 0.5, "to": "Enzo Dong", "width": 1}, {"from": "JUNIOR CALLY", "length": 0.04, "to": "JUNIOR CALLY", "width": 1}, {"from": "JUNIOR CALLY", "length": 0.5, "to": "Nerone", "width": 1}, {"from": "JUNIOR CALLY", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "JUNIOR CALLY", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Dani Faiv", "length": 0.015873015873015872, "to": "Dani Faiv", "width": 1}, {"from": "Dani Faiv", "length": 0.5, "to": "Vale Lambo", "width": 1}, {"from": "Dani Faiv", "length": 0.5, "to": "G.bit", "width": 1}, {"from": "Dani Faiv", "length": 0.25, "to": "thasup", "width": 1}, {"from": "Dani Faiv", "length": 0.25, "to": "Jack The Smoker", "width": 1}, {"from": "Dani Faiv", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Dani Faiv", "length": 0.5, "to": "2nd Roof", "width": 1}, {"from": "Zoda", "length": 0.047619047619047616, "to": "Zoda", "width": 1}, {"from": "Nerone", "length": 0.011111111111111112, "to": "Nerone", "width": 1}, {"from": "Nerone", "length": 0.3333333333333333, "to": "Axos", "width": 1}, {"from": "Nerone", "length": 0.5, "to": "Fabri Fibra", "width": 1}, {"from": "Nerone", "length": 0.5, "to": "Vacca", "width": 1}, {"from": "Nerone", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Nerone", "length": 0.5, "to": "Nex Cassel", "width": 1}, {"from": "Nerone", "length": 0.5, "to": "Boro Boro", "width": 1}, {"from": "Nerone", "length": 0.25, "to": "Jake La Furia", "width": 1}, {"from": "Bresh", "length": 0.025, "to": "Bresh", "width": 1}, {"from": "Axos", "length": 0.025, "to": "Axos", "width": 1}, {"from": "Axos", "length": 0.5, "to": "Bassi Maestro", "width": 1}, {"from": "Axos", "length": 0.5, "to": "Inoki", "width": 1}, {"from": "Axos", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Axos", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Frah Quintale", "length": 0.017241379310344827, "to": "Frah Quintale", "width": 1}, {"from": "Frah Quintale", "length": 0.5, "to": "Mecna", "width": 1}, {"from": "Coma_Cose", "length": 0.058823529411764705, "to": "Coma_Cose", "width": 1}, {"from": "Willie Peyote", "length": 0.01, "to": "Willie Peyote", "width": 1}, {"from": "Willie Peyote", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "LIBERATO", "length": 0.038461538461538464, "to": "LIBERATO", "width": 1}, {"from": "Cosmo", "length": 0.02, "to": "Cosmo", "width": 1}, {"from": "Pop X", "length": 0.011764705882352941, "to": "Pop X", "width": 1}, {"from": "Fedez", "length": 0.006622516556291391, "to": "Fedez", "width": 1}, {"from": "Fedez", "length": 0.5, "to": "Mondo Marcio", "width": 1}, {"from": "Fedez", "length": 0.25, "to": "Dargen D\u0027Amico", "width": 1}, {"from": "Fedez", "length": 0.5, "to": "Enzo Dong", "width": 1}, {"from": "Fedez", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Fedez", "length": 0.5, "to": "Two Fingerz", "width": 1}, {"from": "Bassi Maestro", "length": 0.00423728813559322, "to": "Bassi Maestro", "width": 1}, {"from": "Bassi Maestro", "length": 0.125, "to": "Mondo Marcio", "width": 1}, {"from": "Bassi Maestro", "length": 0.3333333333333333, "to": "Fabri Fibra", "width": 1}, {"from": "Bassi Maestro", "length": 0.5, "to": "Vacca", "width": 1}, {"from": "Bassi Maestro", "length": 0.5, "to": "Nex Cassel", "width": 1}, {"from": "Bassi Maestro", "length": 0.5, "to": "Inoki", "width": 1}, {"from": "Bassi Maestro", "length": 0.5, "to": "Mistaman", "width": 1}, {"from": "Bassi Maestro", "length": 0.5, "to": "DJ Shocca", "width": 1}, {"from": "Bassi Maestro", "length": 0.5, "to": "Mecna", "width": 1}, {"from": "Bassi Maestro", "length": 0.2, "to": "Jack The Smoker", "width": 1}, {"from": "Mondo Marcio", "length": 0.003861003861003861, "to": "Mondo Marcio", "width": 1}, {"from": "Mondo Marcio", "length": 0.3333333333333333, "to": "Fabri Fibra", "width": 1}, {"from": "Mondo Marcio", "length": 0.3333333333333333, "to": "Vacca", "width": 1}, {"from": "Mondo Marcio", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Mondo Marcio", "length": 0.5, "to": "Inoki", "width": 1}, {"from": "Mondo Marcio", "length": 0.3333333333333333, "to": "Mistaman", "width": 1}, {"from": "Mondo Marcio", "length": 0.25, "to": "Jack The Smoker", "width": 1}, {"from": "Mondo Marcio", "length": 0.5, "to": "Two Fingerz", "width": 1}, {"from": "Fabri Fibra", "length": 0.00546448087431694, "to": "Fabri Fibra", "width": 1}, {"from": "Fabri Fibra", "length": 0.5, "to": "Clementino", "width": 1}, {"from": "Fabri Fibra", "length": 0.5, "to": "Dargen D\u0027Amico", "width": 1}, {"from": "Fabri Fibra", "length": 0.5, "to": "Thegiornalisti", "width": 1}, {"from": "Fabri Fibra", "length": 0.5, "to": "Metal Carter", "width": 1}, {"from": "Fabri Fibra", "length": 0.5, "to": "Mecna", "width": 1}, {"from": "Fabri Fibra", "length": 0.5, "to": "Enzo Dong", "width": 1}, {"from": "Fabri Fibra", "length": 0.5, "to": "thasup", "width": 1}, {"from": "Fabri Fibra", "length": 0.3333333333333333, "to": "Jake La Furia", "width": 1}, {"from": "Vacca", "length": 0.004484304932735426, "to": "Vacca", "width": 1}, {"from": "Vacca", "length": 0.3333333333333333, "to": "Inoki", "width": 1}, {"from": "Vacca", "length": 0.5, "to": "Nashley", "width": 1}, {"from": "Vacca", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Vacca", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Vacca", "length": 0.5, "to": "Two Fingerz", "width": 1}, {"from": "Clementino", "length": 0.006944444444444444, "to": "Clementino", "width": 1}, {"from": "Clementino", "length": 0.5, "to": "Enzo Dong", "width": 1}, {"from": "Clementino", "length": 0.3333333333333333, "to": "2nd Roof", "width": 1}, {"from": "Dargen D\u0027Amico", "length": 0.005780346820809248, "to": "Dargen D\u0027Amico", "width": 1}, {"from": "Dargen D\u0027Amico", "length": 0.1111111111111111, "to": "Two Fingerz", "width": 1}, {"from": "Thegiornalisti", "length": 0.01818181818181818, "to": "Thegiornalisti", "width": 1}, {"from": "Nex Cassel", "length": 0.014285714285714285, "to": "Nex Cassel", "width": 1}, {"from": "Nex Cassel", "length": 0.5, "to": "Metal Carter", "width": 1}, {"from": "Nex Cassel", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Inoki", "length": 0.006622516556291391, "to": "Inoki", "width": 1}, {"from": "Inoki", "length": 0.5, "to": "DJ Shocca", "width": 1}, {"from": "Inoki", "length": 0.3333333333333333, "to": "Metal Carter", "width": 1}, {"from": "Inoki", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Inoki", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Inoki", "length": 0.5, "to": "Co\u0027Sang", "width": 1}, {"from": "Colle Der Fomento", "length": 0.014705882352941176, "to": "Colle Der Fomento", "width": 1}, {"from": "Mistaman", "length": 0.012345679012345678, "to": "Mistaman", "width": 1}, {"from": "Mistaman", "length": 0.25, "to": "DJ Shocca", "width": 1}, {"from": "Mistaman", "length": 0.5, "to": "Mecna", "width": 1}, {"from": "Mistaman", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Cor Veleno", "length": 0.008771929824561403, "to": "Cor Veleno", "width": 1}, {"from": "Cor Veleno", "length": 0.5, "to": "Metal Carter", "width": 1}, {"from": "DJ Shocca", "length": 0.027777777777777776, "to": "DJ Shocca", "width": 1}, {"from": "DJ Shocca", "length": 0.5, "to": "Jack The Smoker", "width": 1}, {"from": "Metal Carter", "length": 0.0055248618784530384, "to": "Metal Carter", "width": 1}, {"from": "Metal Carter", "length": 0.5, "to": "Gemello", "width": 1}, {"from": "Metal Carter", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Mecna", "length": 0.011111111111111112, "to": "Mecna", "width": 1}, {"from": "Gemello", "length": 0.045454545454545456, "to": "Gemello", "width": 1}, {"from": "DrefGold", "length": 0.03571428571428571, "to": "DrefGold", "width": 1}, {"from": "DrefGold", "length": 0.5, "to": "Enzo Dong", "width": 1}, {"from": "DrefGold", "length": 0.5, "to": "Lil Busso", "width": 1}, {"from": "Enzo Dong", "length": 0.0625, "to": "Enzo Dong", "width": 1}, {"from": "Nashley", "length": 0.041666666666666664, "to": "Nashley", "width": 1}, {"from": "Nashley", "length": 0.5, "to": "Danien \u0026 The\u00f8", "width": 1}, {"from": "Nashley", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Nashley", "length": 0.5, "to": "2nd Roof", "width": 1}, {"from": "Vale Lambo", "length": 0.03225806451612903, "to": "Vale Lambo", "width": 1}, {"from": "Boro Boro", "length": 0.09090909090909091, "to": "Boro Boro", "width": 1}, {"from": "Boro Boro", "length": 0.5, "to": "2nd Roof", "width": 1}, {"from": "Danien \u0026 The\u00f8", "length": 0.05263157894736842, "to": "Danien \u0026 The\u00f8", "width": 1}, {"from": "Lil Busso", "length": 0.05263157894736842, "to": "Lil Busso", "width": 1}, {"from": "G.bit", "length": 0.07692307692307693, "to": "G.bit", "width": 1}, {"from": "thasup", "length": 0.023809523809523808, "to": "thasup", "width": 1}, {"from": "Jack The Smoker", "length": 0.011764705882352941, "to": "Jack The Smoker", "width": 1}, {"from": "Jack The Smoker", "length": 0.5, "to": "Jake La Furia", "width": 1}, {"from": "Jake La Furia", "length": 0.017543859649122806, "to": "Jake La Furia", "width": 1}, {"from": "Jake La Furia", "length": 0.3333333333333333, "to": "2nd Roof", "width": 1}, {"from": "2nd Roof", "length": 0.05, "to": "2nd Roof", "width": 1}, {"from": "Two Fingerz", "length": 0.00847457627118644, "to": "Two Fingerz", "width": 1}, {"from": "Jesto", "length": 0.007936507936507936, "to": "Jesto", "width": 1}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "barnesHut": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.3,
+            "damping": 0.09,
+            "gravitationalConstant": -80000,
+            "springConstant": 0.001,
+            "springLength": 250
+        },
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
