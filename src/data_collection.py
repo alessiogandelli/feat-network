@@ -201,7 +201,7 @@ Track.reset()
 tedua_uri = 'spotify:artist:1AgAVqo74e2q4FVvg0xpT7'
 
 
-tedua = Artist(tedua_uri, 3)
+tedua = Artist(tedua_uri, 5)
 len(Artist.dicArtists)
 
 #%%
@@ -212,8 +212,57 @@ marra_uri = 'spotify:artist:5AZuEF0feCXMkUCwQiQlW7'
 marra = Artist(marra_uri, 3)
 
 
-
+#%%
+Artist.reset()
+Track.reset()
+dzeko = Artist('spotify:artist:5vQfv3s2Z2SRdPZKr82ABw',3)
 # %%
 g = get_graph()
 plot_graph(g)
 
+
+# %%
+
+g = get_graph()
+# calculate dendrogram
+dendrogram = g.community_edge_betweenness()
+clusters = dendrogram.as_clustering()
+membership = clusters.membership
+g.vs['membership'] = membership
+
+
+# %%
+
+def membership_to_colour(membership):
+    # membership to pandas dataframe
+    df = pd.DataFrame(membership, columns=['cluster'])
+    # get the number of clusters
+    n_clusters = len(df['cluster'].unique())
+    # create a list of colours
+    colours = [plt.cm.Spectral(each) for each in np.linspace(0, 1, n_clusters)]
+
+    return colours
+# %%
+# print all with colored clusters 
+colours = membership_to_colour(membership)
+fig, ax = plt.subplots(figsize=(30,30))
+ig.plot(
+    g,
+    target=ax,
+    layout="kamada_kawai", # print nodes in a circular layout
+    vertex_size=  [p/100 for p in g.vs['popularity']],
+    vertex_frame_width=4.0,
+    vertex_frame_color="white",
+    vertex_label=g.vs["name"],
+    vertex_label_size=15.0,
+    edge_width = [a/2-2 for a in g.es['weight']],
+    vertex_color = colours,
+    )
+# %%
+
+# %%
+
+# %%
+# plot subgraph of cluster 0
+g0 = g.vs.select(membership=0).subgraph()
+plot_graph(g0)
