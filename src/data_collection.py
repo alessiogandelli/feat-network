@@ -19,9 +19,9 @@ secret = os.environ.get("CLIENT_SECRET")
 spotify = spotipy.Spotify( client_credentials_manager=SpotifyClientCredentials(cid, secret))
 
 
-# %%
 class Artist:
     dicArtists = {}
+    dicName = {}
     names = {}
     id_iter = itertools.count()
 
@@ -36,35 +36,33 @@ class Artist:
         self.genres = artist_raw['genres']
         self.followers = artist_raw['followers']['total']
         self.popularity = artist_raw['popularity']
-        self.tracks = None
+        self.tracks = []
         self.feat = {}
         Artist.dicArtists[self.uri] = self
         Artist.names[self.uri] = self.name
+        Artist.dicName[self.id] = self.name
 
         if autoload > 0:
             self.getTracks(autoload - 1)
 
+    # fill the self.feat dictionary with the artists that have collaborated with this artist
     def getFeat(self):
 
         if len(self.feat) == 0:
-            for track in self.getTracks():
+            for track in self.getTracks(1):
                 for artist in track.getArtists():
                     if artist.uri != self.uri:
 
 
-                        if artist.name in self.feat:
+                        if artist.uri in self.feat:
                             self.feat[artist.uri] += 1
                         else:
                             self.feat[artist.uri] = 1
         return self.feat
 
+    # get all tracks of the artist
     def getTracks(self, autoload=0):
-        if self.tracks is None:
-            #query = 'artist:' + self.name
-
-            # raw_tracks1 = spotify.search( query, limit=50, type='track', market='it', offset=0)['tracks']['items']
-            # raw_tracks2 = spotify.search( query, limit=50, type='track', market='it', offset=50)['tracks']['items']
-            # raw_tracks = raw_tracks1 + raw_tracks2
+        if len(self.tracks) == 0 and autoload >= 0:
 
             album_raw_album = spotify.artist_albums(self.uri, album_type= 'album', country='it', limit=50)
             album_raw_single = spotify.artist_albums(self.uri, album_type= 'single', country='it', limit=50)
@@ -83,9 +81,37 @@ class Artist:
             self.tracks = [Track(t, autoload) if t['uri'] not in Track.dicTracks else Track.dicTracks[t['uri']] for t in tracks_raw]
         return self.tracks
 
+    def reset():
+        Artist.dicArtists = {}
+        Artist.dicName = {}
+        Artist.names = {}
+        Artist.id_iter = itertools.count()
+
+    # da testare 
+    def ego_graph(self):
+        g = ig.Graph(directed=True)
+        g.add_vertices(len(Artist.dicArtists))
+        g.vs['name'] = [Artist.dicName[i] for i in range(len(Artist.dicArtists))]
+        g.vs['label'] = g.vs['name']
+        g.vs['label_size'] = 8
+        g.vs['size'] = 10
+        g.vs['color'] = 'lightblue'
+        g.vs['shape'] = 'circle'
+        g.vs['label_dist'] = 1.5
+        g.vs['label_angle'] = 0
+        g.vs['label_color'] = 'black'
+
+        for artist in self.feat:
+            g.add_edge(self.id, Artist.dicArtists[artist].id, weight=self.feat[artist])
+
+        return g
+
 
     def __repr__(self) -> str:
         return f'Artist: {self.name}'
+    
+    def __str__(self) -> str:
+        return 'Artist: ' + self.name + ' - ' + len(self.tracks) + ' tracks'
 
 
 class Track:
@@ -114,6 +140,9 @@ class Track:
     def __repr__(self) -> str:
         return f'Track: {self.name}'
 
+    def reset():
+        Track.dicTracks = {}
+
 # %%
 # get related to tedua
 
@@ -126,50 +155,75 @@ len(Artist.dicArtists)
 
 #%%
 
+Artist.reset()
+Track.reset()
 marra_uri = 'spotify:artist:5AZuEF0feCXMkUCwQiQlW7'
-marra = Artist(marra_uri, 4)
+marra = Artist(marra_uri, 2)
 
 
-# %% possibile list of artists of all the album
-n_vertices = len(tedua.getFeat()) +1
-edges = []
-for i, feat in enumerate(tedua.getFeat()):
-    edges.append((0, i))
-g = ig.Graph(n_vertices, edges)
 
-g.vs['name'] = ['tedua']+ list(tedua.getFeat())
 
-# %%
-fig, ax = plt.subplots(figsize=(5,5))
-ig.plot(
-    g,
-    target=ax,
-    layout="circle", # print nodes in a circular layout
-    vertex_size=0.1,
-    vertex_frame_width=4.0,
-    vertex_frame_color="white",
-    vertex_label=g.vs["name"],
-    vertex_label_size=7.0,
-
-)
 
 
 
 # %%
-n_vertices = len(Artist.dicArtists)
-edges = []
-nodes =  Artist.dicArtists.copy()
+# create graph of related artists
+
+def get_graph():
+    n_vertices = len(Artist.dicArtists)
+    nodes =  Artist.dicArtists.copy()
 
 
-#%%
-for artist in nodes.values():
-    for feat in nodes[artist.uri].getFeat():
-        if feat in nodes:
-            edges.append((artist.id, nodes[feat].id))
+    edges = []
+    weights = []
+    popularity = []
+    genres = []
+    followers = []
 
-g = ig.Graph(n_vertices, edges)
-g.vs['name'] = [ n.name for n in nodes.values()]
+
+    # add egges 
+    for artist in nodes.values():
+        for feat in nodes[artist.uri].getFeat().items():
+            if feat[0] in nodes:
+                
+                
+                edges.append((artist.id, nodes[feat[0]].id))
+                weights.append(feat[1])
+                popularity.append( nodes[feat[0]].popularity)
+                if len(nodes[feat[0]].genres) > 0:
+                    genres.append(nodes[feat[0]].genres[0])
+                else:
+                    genres.append('none')
+                followers.append(nodes[feat[0]].followers)
+
+    # create object graph 
+    g = ig.Graph(n_vertices, edges)
+    g.vs['name'] = [ n.name for n in nodes.values()]
+    g.es['weight'] = weights
+    g.es['popularity'] = popularity
+    g.es['genres'] = genres
+
+    return g
+
+# %%
+def plot_graph(g):
+    fig, ax = plt.subplots(figsize=(30,30))
+    ig.plot(
+        g,
+        target=ax,
+        layout="kamada_kawai", # print nodes in a circular layout
+        vertex_size=[p/100 for p in g.es['popularity']],
+        vertex_frame_width=4.0,
+        vertex_frame_color="white",
+        vertex_label=g.vs["name"],
+        vertex_label_size=15.0,
+        edge_width = [a/2-2 for a in g.es['weight']],
+
+    )
+# %%
+
+
 
 # %%
 
-# %%
+
