@@ -8,6 +8,7 @@ import spotipy
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
+import itertools
 load_dotenv()
 
 
@@ -137,3 +138,9 @@ ig.plot(
 # select members of cluster 0 and create a subgraph
 g0 = g.vs.select(membership=0).subgraph()
 plot_graph(g0)
+
+
+
+
+
+

@@ -57,24 +57,42 @@ class Artist:
     def getTracks(self, autoload=0):
         if len(self.tracks) == 0 and autoload >= 0:
 
-            # get albums and singles 
+
             album_raw_album = spotify.artist_albums(self.uri, album_type= 'album', country='it', limit=50)
             album_raw_single = spotify.artist_albums(self.uri, album_type= 'single', country='it', limit=50)
             album_raw = album_raw_album['items'] + album_raw_single['items']
-        
+
             albums_uri = [album['uri'] for album in album_raw]
 
-            # get all tracks of the artist
-            tracks_raw = []
+
+            tracks_uri = []
+
             for a in albums_uri:
-                 tracks_raw += spotify.album_tracks(a, limit=50, offset=0, market='it')['items'] 
+                tracks =  spotify.album_tracks(a, limit=50, offset=0, market='it')['items']
+                n_tracks = len(tracks)
+                for i in range(n_tracks):
+                    tracks_uri.append(tracks[i]['uri'])
 
-    
-            print(len(tracks_raw), 'tracks found of', self.name)
+                        # create track objects
 
-            # create track objects
+            
+            a = 0
+            b = 50
+            c = 50
+            tracks_raw = []
+
+
+            while a!=b:
+
+                tracks_raw += spotify.tracks(tracks_uri[a:b])['tracks']
+                print('getting tracks', a, 'to', b, 'of', len(tracks_uri))
+                b = len(tracks_uri) if b + c > len(tracks_uri) else b + c
+                a = a + c if a + c < len(tracks_uri) else len(tracks_uri)
+
             self.tracks = []
             self.tracks = [Track(t, autoload) if t['uri'] not in Track.dicTracks else Track.dicTracks[t['uri']] for t in tracks_raw]
+
+            print('found ', str(len(self.tracks)), ' tracks for ', self.name)
         return self.tracks
 
     def reset():
@@ -109,16 +127,17 @@ class Artist:
     def __str__(self) -> str:
         return 'Artist: ' + self.name + ' - ' + str(len(self.tracks)) + ' tracks'
 
-
 class Track:
     dicTracks = {}
 
     def __init__(self, track_raw, autoload=0):
         self.name = track_raw['name']
         self.uri = track_raw['uri']
-       # self.album = track_raw['album']['name']
+        # self.album = track_raw['album']['name']
         self.duration = track_raw['duration_ms']
         self.artistsRaw = track_raw['artists']
+        self.popularity = track_raw['popularity']
+        self.release_date = track_raw['album']['release_date']
         self.artists = None
         Track.dicTracks[self.uri] = self
 
