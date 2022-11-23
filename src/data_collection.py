@@ -129,7 +129,7 @@ g.vs['popularity'] = list(incidence_matrix.max(axis=1))+ list(artist_pop.values(
 
 
 #%% plot bipartite graph 
-fig, ax = plt.subplots(figsize=(30,30))
+fig, ax = plt.subplots(figsize=(50,50))
 ig.plot(
     g,
     target=ax,
@@ -137,8 +137,8 @@ ig.plot(
     vertex_label=g.vs["name"],
     vertex_shape = ['circle' if v else 'square' for v in g.vs['type']],
     vertex_color = ['green' if v else 'red' for v in g.vs['type']],
-    vertex_size=  [p/100 for p in g.vs['popularity']],
-    vertex_label_size=15.0,
+    vertex_size=  [p/50 for p in g.vs['popularity']],
+    vertex_label_size=25.0,
 
 )
 

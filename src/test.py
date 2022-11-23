@@ -1,8 +1,15 @@
-import itertools
+
+#%%
+import pandas as pd
+import igraph as ig
+import numpy as np
+from utils import Artist, Track
+import matplotlib.pyplot as plt
 import spotipy
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
+import itertools
 load_dotenv()
 
 
@@ -151,3 +158,21 @@ class Track:
 
     def reset():
         Track.dicTracks = {}
+
+# %%
+
+uri_tedua = 'spotify:artist:1AgAVqo74e2q4FVvg0xpT7'
+tedua = Artist(uri_tedua, 1)
+# %%
+
+
+# create a dataframe  with audio feature  and the name as index  of all tracks of the artist
+df = pd.DataFrame([t.audio_features for t in tedua.getTracks()]).set_index('uri')
+df['name'] = [Track.track_name[uri] for uri in df.index]
+df.set_index('name', inplace=True)
+
+
+
+
+
+# %%
