@@ -125,7 +125,7 @@ class Artist:
         return f'Artist: {self.name}'
     
     def __str__(self) -> str:
-        return 'Artist: ' + self.name + ' - ' + str(len(self.tracks)) + ' tracks'
+        return self.name 
 
 class Track:
     dicTracks = {}
@@ -154,7 +154,7 @@ class Track:
         return self.artists
 
     def __repr__(self) -> str:
-        return f'Track: {self.name}'
+        return self.name
 
     def reset():
         Track.dicTracks = {}
