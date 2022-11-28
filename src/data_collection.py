@@ -20,7 +20,7 @@ spotify = spotipy.Spotify( client_credentials_manager=SpotifyClientCredentials(c
 
 
 
-#%%
+
 def get_graph(n_vertices, nodes):
     n_vertices = len(Artist.dicArtists)
     nodes =  Artist.dicArtists.copy()
@@ -126,10 +126,13 @@ g = ig.Graph.Incidence(incidence_matrix.values.tolist(), mode=ig.ADJ_UNDIRECTED,
 # add names to the vertices the vertexes are songs and then artists 
 g.vs['name'] =  incidence_matrix.index.tolist()+ incidence_matrix.columns.tolist()
 g.vs['popularity'] = list(incidence_matrix.max(axis=1))+ list(artist_pop.values())
-g.vs['danceability'] = [song.audio_features['danceability'] for song in incidence_matrix.index] 
-g.vs['energy'] = [song.audio_features['energy'] for song in incidence_matrix.index]
-g.vs['tempo'] = [song.audio_features['tempo'] for song in incidence_matrix.index]
-g.vs['release_date'] = [song.release_date for song in incidence_matrix.index]
+
+g.vs['danceability'] = [song.audio_features['danceability'] for song in incidence_matrix.index] + [artist.audio_features['danceability'] for artist in incidence_matrix.columns]
+g.vs['energy'] = [song.audio_features['energy'] for song in incidence_matrix.index] + [artist.audio_features['energy'] for artist in incidence_matrix.columns]
+g.vs['tempo'] = [song.audio_features['tempo'] for song in incidence_matrix.index] + [artist.audio_features['tempo'] for artist in incidence_matrix.columns]
+g.vs['release_date'] = [song.release_date for song in incidence_matrix.index] 
+
+# print release date attriburte
 
 
 

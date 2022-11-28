@@ -31,12 +31,15 @@ class Artist:
         self.popularity = artist_raw['popularity']
         self.tracks = []
         self.feat = {}
+        self.audio_features = {'danceability': 0, 'energy': 0, 'tempo': 0}
+
         Artist.dicArtists[self.uri] = self
         Artist.names[self.uri] = self.name
         Artist.dicName[self.id] = self.name
 
         if autoload > 0:
             self.getTracks(autoload - 1)
+            self.get_audio_features()
 
     # fill the self.feat dictionary with the artists that have collaborated with this artist
     def getFeat(self):
@@ -108,6 +111,21 @@ class Artist:
         Artist.dicName = {}
         Artist.names = {}
         Artist.id_iter = itertools.count()
+
+    def get_audio_features(self):
+        audio_features = {}
+        danceability = 0
+        energy = 0
+        tempo = 0
+        for track in self.getTracks(-1):
+            danceability += track.audio_features['danceability']
+            energy += track.audio_features['energy']
+            tempo += track.audio_features['tempo']
+        
+        audio_features['danceability'] = danceability / len(self.getTracks(-1))
+        audio_features['energy'] = energy / len(self.getTracks(-1))
+        audio_features['tempo'] = tempo / len(self.getTracks(-1))
+        self.audio_features = audio_features
 
 
     def __repr__(self) -> str:
