@@ -67,13 +67,15 @@ class Artist:
 
 
             tracks_uri = []
-
+            tracks_names = set()
             # get all tracks uri 
             for a in albums_uri:
                 tracks =  spotify.album_tracks(a, limit=50, offset=0, market='it')['items']
                 n_tracks = len(tracks)
                 for i in range(n_tracks):
-                    tracks_uri.append(tracks[i]['uri'])
+                    if tracks[i]['name'] not in tracks_names:
+                        tracks_uri.append(tracks[i]['uri'])
+                    tracks_names.add(tracks[i]['name'])
 
                         # create track objects
 

@@ -75,7 +75,6 @@ def generate(uri, depth=3):
     print('found ', str(len(Artist.dicArtists)))
     return artista
 
-# %%
 
 def membership_to_colour(membership):
     # membership to pandas dataframe
@@ -91,7 +90,8 @@ def membership_to_colour(membership):
 
 uri_tedua = 'spotify:artist:1AgAVqo74e2q4FVvg0xpT7' #tedua 
 uri_marra = 'spotify:artist:5AZuEF0feCXMkUCwQiQlW7' #marra
-tedua = generate(uri_tedua,2)
+#tedua = generate(uri_tedua,2)
+marra = generate(uri_marra,2)
 
 
 
@@ -126,6 +126,11 @@ g = ig.Graph.Incidence(incidence_matrix.values.tolist(), mode=ig.ADJ_UNDIRECTED,
 # add names to the vertices the vertexes are songs and then artists 
 g.vs['name'] =  incidence_matrix.index.tolist()+ incidence_matrix.columns.tolist()
 g.vs['popularity'] = list(incidence_matrix.max(axis=1))+ list(artist_pop.values())
+g.vs['danceability'] = [song.audio_features['danceability'] for song in incidence_matrix.index] 
+g.vs['energy'] = [song.audio_features['energy'] for song in incidence_matrix.index]
+g.vs['tempo'] = [song.audio_features['tempo'] for song in incidence_matrix.index]
+g.vs['release_date'] = [song.release_date for song in incidence_matrix.index]
+
 
 
 #%% plot bipartite graph 
