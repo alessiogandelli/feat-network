@@ -21,49 +21,46 @@ spotify = spotipy.Spotify( client_credentials_manager=SpotifyClientCredentials(c
 
 
 
-def get_graph(n_vertices, nodes):
-    n_vertices = len(Artist.dicArtists)
-    nodes =  Artist.dicArtists.copy()
+def get_graph(nodes):
+    g = ig.Graph()
 
-
-    edges = []
-    weights = []
-
-    # add egges 
     for artist in nodes.values():
+        g.add_vertex(artist.name,   popularity = artist.popularity, 
+                                    genres = artist.genres, 
+                                    followers = artist.followers)
 
+    for artist in nodes.values():
         for feat in artist.getFeat().items():
             if feat[0] in nodes:
-            
-                edges.append((artist.id, nodes[feat[0]].id))
-                weights.append(feat[1])
+                # add edge between artist and featured artist
+                g.add_edge(artist.name, nodes[feat[0]].name, weight=feat[1])
                 
          
 
-    # create object graph 
-    g = ig.Graph(n_vertices, edges)
-    g.vs['name'] = [ n.name for n in nodes.values()]
-    g.es['weight'] = weights
-    g.vs['popularity'] = [ n.popularity for n in nodes.values()]
-    g.vs['genres'] = [n.genres if len(n.genres) > 0 else ['none'] for n in nodes.values()]
-    g.vs['followers'] = [n.followers for n in nodes.values()]
-
     return g
+
+# print all the nodes 
+def print_nodes(g):
+    for v in g.vs:
+        print(v['name'], v['popularity'], v['genres'], v['followers'])
+
 
 
 def plot_graph(g):
-    fig, ax = plt.subplots(figsize=(30,30))
+    fig, ax = plt.subplots(figsize=(100,100))
     ig.plot(
         g,
         target=ax,
-        layout="kamada_kawai", # print nodes in a circular layout
-        vertex_size=  [p/100 for p in g.vs['popularity']],
+        #layout="kamada_kawai", # print nodes in a circular layout
+        layout="fr",
+        vertex_size=  ['1' if artist > 3 else '0.5' for artist in g.vs['degree']],
         vertex_frame_width=4.0,
         vertex_frame_color="white",
         vertex_label=g.vs["name"],
-        vertex_label_size=15.0,
-        edge_width = [a/2-2 for a in g.es['weight']],
-        vertex_color = ['green' if 'italian hip hop' in gen else 'grey' for gen in g.vs['genres']],
+        vertex_label_size=30.0,
+        edge_width = [a for a in g.es['weight']],
+        #vertex_color = ['green' if 'italian hip hop' in gen else 'grey' for gen in g.vs['genres']],
+        vertex_color = ['#425df5' if artist > 3 else 'grey' for artist in g.vs['degree']],
 
     )
 
@@ -93,67 +90,83 @@ uri_marra = 'spotify:artist:5AZuEF0feCXMkUCwQiQlW7' #marra
 #tedua = generate(uri_tedua,2)
 marra = generate(uri_marra,2)
 
+#%%
+uri_giorgia = "https://open.spotify.com/artist/0gm1lHoOXAdy5OB4AwFYRr?si=Sdc9yvflRZiVQ_HkrgORjw"
+generate(uri_giorgia, 3)
+
+uri_articolo31= 'https://open.spotify.com/artist/1Ij5ZIGlPTkoZibay58zHe?si=m1f7nzqpRDerrSO01ytDAg'
+Artist(uri_articolo31, 3)
+
+uri_cugini = 'https://open.spotify.com/artist/3PxABgbDMeYxPK9GGjNg4j?si=MfEaWDmXSSKSvvAJYgXLEQ'
+Artist(uri_cugini, 3)
+
+uri_colapesce = 'https://open.spotify.com/artist/2KX2VLr3Eu6sn6EtxzCtvf?si=xCr_S5jhT36egpJixcZiEQ'
+Artist(uri_colapesce, 3)
+
+uri_moda = 'https://open.spotify.com/artist/3ALm6zJLaJMWV0r89kuYtu?si=VpcwpcIOThacd3Nul3fNRA'
+Artist(uri_moda, 3)
+
+uri_elodie = 'https://open.spotify.com/artist/7GgpsUpkj3olseoaTY7TEY?si=kxtROXZXTtOyiPEe62zCGQ'
+Artist(uri_elodie, 3)
+
+url_ultimo = 'https://open.spotify.com/artist/3hN3iJMbbBmqBSAMx5veDa?si=jY-37NoPQaWW3sW2GuxMZQ'
+Artist(url_ultimo, 3)
+
+url_mengoni ='https://open.spotify.com/artist/3xGlLcG9CUrs5MvFkSLOS5?si=GCuDnknSQF-21F5yucO8_Q'
+Artist(url_mengoni, 3)
+
+url_madame = 'https://open.spotify.com/artist/1vgQksyJ0IVz8y9XerEOy3?si=Lm3Fkz6dQNaStoBl5BsK8g'
+Artist(url_madame, 3)
+
+url_grignani = 'https://open.spotify.com/artist/0H1InhXaXQPL1aj0mvHemU?si=lwaE2EVlQ8GdRd7xx04TXA'
+Artist(url_grignani, 3)
+
+url_tananai = 'https://open.spotify.com/artist/35V1WomiedCJeGfupcPm7s?si=hInDNsDWQtaPfZO9bdwp9Q'
+Artist(url_tananai, 3)
+
+url_ariete = 'https://open.spotify.com/artist/2T4kh33TYdnDesvlQyRst8?si=lkQd9vieRqq8U_xBXV4JGA'
+Artist(url_ariete, 3)
+
+uri_mara = 'https://open.spotify.com/artist/0zoMmzmyi8N8LwzhyXPvtk?si=GXNM32maTguBIAPxk4QvbQ'
+Artist(uri_mara, 3)
+
+uri_lazza = 'https://open.spotify.com/artist/0jdNdfi4vAuVi7a6cPDFBM?si=n8Zjo7ApTMSEFn8DlP1n_Q'
+Artist(uri_lazza, 3)
+
+uri_mrain = 'https://open.spotify.com/artist/59MLbXG0jLVwJup3KAd6m1?si=DodOwQ7HQrSCZg3Zs99wkQ'
+Artist(uri_mrain, 3)
+
+uri_comacose = 'https://open.spotify.com/artist/0Sv8sjzMHBbAWXt4CGB9Us?si=sYADHL-3RtKP8LGJqi_l1g'
+Artist(uri_comacose, 3)
+
+uri_gassman = 'https://open.spotify.com/artist/5i0snp4GKBLiFsAZAwuJ5b?si=wNY31NnrS9e1OB2OE1vlnA'
+Artist(uri_gassman, 3)
+
+uri_rosa = 'https://open.spotify.com/artist/5gYADZXuZoaJwrwfAPbKuH?si=s_2XSjWUSMGcCoEAPvDRJw'
+Artist(uri_rosa, 3)
+
+uri_oxa = 'https://open.spotify.com/artist/6iuybPv0Mii8x21mztjaUN?si=MBQPLBA0R4y7m3jIja2rxQ'
+Artist(uri_oxa, 3)
+
+uri_paola = 'https://open.spotify.com/artist/6sXWE3eSY59H6zy1tiRPue?si=Ga7h1ZldQCGkJxAqfKobVw'
+Artist(uri_paola, 3)
+
+uri_lda = 'https://open.spotify.com/artist/5FwDaIGy29GQC5d0MR7fKf?si=H9OCuBeSSye5sNfbCgeYJQ'
+Artist(uri_lda, 3)
 
 
+#%%
+g = get_graph(Artist.dicArtists)
+g.vs['degree'] = g.degree()
+plot_graph(g)
 
-
+#%%
 
 
 #%%
 
 
 
-# create incidence matrix betwee tracks and artists with labels
-#%%
-incidence_matrix = pd.DataFrame(0, index=Track.dicTracks.values(), columns=Artist.dicArtists.values())
-song_pop = []
-artist_pop = {}
-
-for track in Track.dicTracks.values():
-    if len(track.getArtists()) > 0 :
-        for artist in track.getArtists():
-            incidence_matrix[artist][track] = track.popularity
-            artist_pop[artist] = artist.popularity
-
-
-
-# remove tracks with all zeros
-incidence_matrix = incidence_matrix.loc[:, (incidence_matrix != 0).any(axis=0)]
-
-#%%
-g = ig.Graph.Incidence(incidence_matrix.values.tolist(), mode=ig.ADJ_UNDIRECTED, weighted = True)
-
-# add names to the vertices the vertexes are songs and then artists 
-g.vs['name'] =  incidence_matrix.index.tolist()+ incidence_matrix.columns.tolist()
-g.vs['popularity'] = list(incidence_matrix.max(axis=1))+ list(artist_pop.values())
-
-g.vs['danceability'] = [song.audio_features['danceability'] for song in incidence_matrix.index] + [artist.audio_features['danceability'] for artist in incidence_matrix.columns]
-g.vs['energy'] = [song.audio_features['energy'] for song in incidence_matrix.index] + [artist.audio_features['energy'] for artist in incidence_matrix.columns]
-g.vs['tempo'] = [song.audio_features['tempo'] for song in incidence_matrix.index] + [artist.audio_features['tempo'] for artist in incidence_matrix.columns]
-g.vs['release_date'] = [song.release_date for song in incidence_matrix.index] 
-
-# print release date attriburte
-
-
-
-#%% plot bipartite graph 
-fig, ax = plt.subplots(figsize=(50,50))
-ig.plot(
-    g,
-    target=ax,
-    layout= "auto", 
-    vertex_label=g.vs["name"],
-    vertex_shape = ['circle' if v else 'square' for v in g.vs['type']],
-    vertex_color = ['green' if v else 'red' for v in g.vs['type']],
-    vertex_size=  [p/50 for p in g.vs['popularity']],
-    vertex_label_size=25.0,
-
-)
-
-# plot different shape in the bipartite graph
-#%%
-#export to gml
-g.write_gml('tedua.gml')
 
 
 
@@ -257,4 +270,58 @@ plot_graph(g0)
 
 
 
+#%%
+#create dataframe 
+df = pd.DataFrame(columns = ['player', 'game', 'points'])
 
+for player in data.keys():
+    for i, game in enumerate(data[player]):
+        for turn in game:
+            df = df.append({'player': player, 'game': i+1, 'points': turn}, ignore_index=True)
+
+
+#plot df 
+
+
+sns.set(style="whitegrid")
+ax = sns.boxplot(x="game", y="points", data=df)
+ax = sns.swarmplot(x="game", y="points", data=df, color=".25")
+#shape dots based on players
+ax = sns.swarmplot(x="game", y="points", data=df, hue='player', palette=['red', 'blue'], size=10, marker='D')
+
+plt.show()
+#set the size of the plot
+plt.figure(figsize=(10,10))
+
+
+
+
+
+
+#%%
+#adjacency_matrix = pd.DataFrame( np.zeros((len(nodes), len(nodes)), np.int32),index=nodes, columns=nodes,)
+
+g = ig.Graph()
+
+for artist in nodes.values():
+    g.add_vertex(artist.name)
+
+for artist in nodes.values():
+    for feat in artist.getFeat().items():
+        if feat[0] in nodes:
+            # add edge between artist and featured artist
+            g.add_edge(artist.name, nodes[feat[0]].name, weight=feat[1])
+            
+
+            
+
+
+          
+#%%
+
+# create object graph 
+g = ig.Graph(n_vertices, edges)
+
+#%%
+g.vs['name'] = [nodes[artist].name for artist in adjacency_matrix.index]
+# %%
