@@ -28,7 +28,7 @@ class Artist:
 
     def __init__(self, artist_uri, autoload=0):
         artist_raw = spotify.artist(artist_uri)
-        #print('creating artist', artist_raw['name'])
+        print( artist_raw['name'],'creating artist')
 
         self.id = next(Artist.id_iter)
         self.name = artist_raw['name']
@@ -38,17 +38,21 @@ class Artist:
         self.popularity = artist_raw['popularity']
         self.tracks = []
         self.feat = {}
+        self.audio_features = {'danceability': 0, 'energy': 0, 'tempo': 0}
+
         Artist.dicArtists[self.uri] = self
         Artist.names[self.uri] = self.name
         Artist.dicName[self.id] = self.name
 
         if autoload > 0:
             self.getTracks(autoload - 1)
+            #self.get_audio_features()
 
     # fill the self.feat dictionary with the artists that have collaborated with this artist
     def getFeat(self):
-
+       
         if len(self.feat) == 0:
+            print(self.name, 'getting feat')
             for track in self.getTracks(-1):
                 for artist in track.getArtists():
                     if artist.uri != self.uri:
@@ -62,50 +66,61 @@ class Artist:
 
     # get all tracks of the artist
     def getTracks(self, autoload=0):
+       
         if len(self.tracks) == 0 and autoload >= 0:
-
+            print(self.name,'getting tracks')
             # get albums and  singles and merge 
             album_raw_album = spotify.artist_albums(self.uri, album_type= 'album', country='it', limit=50)
             album_raw_single = spotify.artist_albums(self.uri, album_type= 'single', country='it', limit=50)
             album_raw = album_raw_album['items'] + album_raw_single['items']
 
-            #get uri off all albums  
+
             albums_uri = [album['uri'] for album in album_raw]
 
+           
 
+
+            # print(self.name, 'found', str(len(albums_uri)), ' albums ')
+
+            ## get tracks from albums because i need the date 
             tracks_uri = []
-
-            # get all tracks uri 
+            tracks_names = set()
+           
             for a in albums_uri:
                 tracks =  spotify.album_tracks(a, limit=50, offset=0, market='it')['items']
                 n_tracks = len(tracks)
                 for i in range(n_tracks):
-                    tracks_uri.append(tracks[i]['uri'])
+                    if tracks[i]['name'] not in tracks_names:
+                        tracks_uri.append(tracks[i]['uri'])
+                    tracks_names.add(tracks[i]['name'])
 
                         # create track objects
 
-            #  get information about the tracks in batch of 50 tracks
-            a = 0
-            b = 50
-            c = 50
-            tracks_raw = []
-            audio_features = []
 
-            while a!=b:
-                tracks_raw += spotify.tracks(tracks_uri[a:b])['tracks']
-                audio_features += spotify.audio_features(tracks_uri[a:b])
+            # # get audio information about the tracks in batch of 50 tracks
+            if len(tracks_uri) > 0:   
+            #     pass
+                a = 0
+                b = 50
+                c = 50
+                tracks_raw = []
+                audio_features = []
+
+                while a!=b:
+                    tracks_raw += spotify.tracks(tracks_uri[a:b])['tracks']
+            #     audio_features += spotify.audio_features(tracks_uri[a:b])
                 
-                b = len(tracks_uri) if b + c > len(tracks_uri) else b + c
-                a = a + c if a + c < len(tracks_uri) else len(tracks_uri)
+                    b = len(tracks_uri) if b + c > len(tracks_uri) else b + c
+                    a = a + c if a + c < len(tracks_uri) else len(tracks_uri)
 
             # add  audio features to tracks_raw
-            for i in range(len(tracks_raw)):
-                tracks_raw[i]['audio_features'] = audio_features[i]
+            # for i in range(len(tracks_raw)):
+            #     tracks_raw[i]['audio_features'] = audio_features[i]
 
             # create track objects  
-            self.tracks = [Track(t, autoload) if t['uri'] not in Track.dicTracks else Track.dicTracks[t['uri']] for t in tracks_raw]
+                self.tracks = [Track(t, autoload) if t['uri'] not in Track.dicTracks else Track.dicTracks[t['uri']] for t in tracks_raw]
 
-            print('found ', str(len(self.tracks)), ' tracks for ', self.name)
+                print( self.name, 'found ', str(len(self.tracks)), ' tracks ')
         return self.tracks
 
     def reset():
@@ -113,6 +128,21 @@ class Artist:
         Artist.dicName = {}
         Artist.names = {}
         Artist.id_iter = itertools.count()
+
+    def get_audio_features(self):
+        audio_features = {}
+        danceability = 0
+        energy = 0
+        tempo = 0
+        for track in self.getTracks(-1):
+            danceability += track.audio_features['danceability']
+            energy += track.audio_features['energy']
+            tempo += track.audio_features['tempo']
+        
+        audio_features['danceability'] = danceability / len(self.getTracks(-1))
+        audio_features['energy'] = energy / len(self.getTracks(-1))
+        audio_features['tempo'] = tempo / len(self.getTracks(-1))
+        self.audio_features = audio_features
 
 
     def __repr__(self) -> str:
@@ -131,10 +161,10 @@ class Track:
         # self.album = track_raw['album']['name']
         self.duration = track_raw['duration_ms']
         self.artistsRaw = track_raw['artists']
-        self.popularity = track_raw['popularity']
+#        self.popularity = track_raw['popularity']
         self.release_date = track_raw['album']['release_date']
         self.artists = None
-        self.audio_features = track_raw['audio_features']
+       # self.audio_features = track_raw['audio_features']
         Track.dicTracks[self.uri] = self
         Track.track_name[self.uri] = self.name
 
@@ -160,9 +190,10 @@ class Track:
         Track.dicTracks = {}
 
 # %%
-
+Artist.reset()
+Track.reset()
 uri_tedua = 'spotify:artist:1AgAVqo74e2q4FVvg0xpT7'
-tedua = Artist(uri_tedua, 1)
+tedua = Artist("spotify:artist:0gm1lHoOXAdy5OB4AwFYRr", 3)
 # %%
 
 
@@ -175,4 +206,47 @@ df.set_index('name', inplace=True)
 
 
 
+# %%
+Artist.reset()
+Track.reset()
+artista = Artist(uri_tedua, 2)
+print('found ', str(len(Artist.dicArtists)))
+# %%
+
+g = ig.Graph()
+nodes = Artist.dicArtists
+for artist in nodes.values():
+    g.add_vertex(artist.name,   popularity = artist.popularity, 
+                                genres = artist.genres, 
+                                followers = artist.followers
+                                )
+
+for artist in nodes.values():
+    print(artist.name, 'ore prendiamo i suoi feat ')
+    for feat in artist.getFeat().items():
+        if feat[0] in nodes:
+            print(artist.name, 'feat', nodes[feat[0]].name, feat[1])
+            # add edge between artist and featured artist
+            g.add_edge(artist.name, nodes[feat[0]].name, weight=feat[1])
+
+
+
+g.vs['degree'] = g.degree()
+                
+# %%
+fig, ax = plt.subplots(figsize=(100,100))
+ig.plot(
+    g,
+    target=ax,
+    #layout="kamada_kawai", # print nodes in a circular layout
+    layout="fr",
+    vertex_size=  ['1' if artist > 3 else '0.5' for artist in g.vs['degree']],
+    vertex_frame_width=4.0,
+    vertex_frame_color="white",
+    vertex_label=g.vs["name"],
+    vertex_label_size=30.0,
+    #edge_width = [a for a in g.es['weight']],
+    #vertex_color = ['green' if 'italian hip hop' in gen else 'grey' for gen in g.vs['genres']],
+    vertex_color = ['#425df5' if artist > 3 else 'grey' for artist in g.vs['degree']]
+)
 # %%

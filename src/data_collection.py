@@ -24,14 +24,18 @@ spotify = spotipy.Spotify( client_credentials_manager=SpotifyClientCredentials(c
 def get_graph(nodes):
     g = ig.Graph()
 
+
     for artist in nodes.values():
         g.add_vertex(artist.name,   popularity = artist.popularity, 
                                     genres = artist.genres, 
-                                    followers = artist.followers)
+                                    followers = artist.followers
+                                    )
 
     for artist in nodes.values():
+        
         for feat in artist.getFeat().items():
-            if feat[0] in nodes:
+            
+           if feat[0] in nodes and artist in nodes:
                 # add edge between artist and featured artist
                 g.add_edge(artist.name, nodes[feat[0]].name, weight=feat[1])
                 
@@ -90,74 +94,77 @@ uri_marra = 'spotify:artist:5AZuEF0feCXMkUCwQiQlW7' #marra
 #tedua = generate(uri_tedua,2)
 marra = generate(uri_marra,2)
 
-#%%
+ #%%
+depth = 3
+
 uri_giorgia = "https://open.spotify.com/artist/0gm1lHoOXAdy5OB4AwFYRr?si=Sdc9yvflRZiVQ_HkrgORjw"
-generate(uri_giorgia, 3)
+uri_giorgia = "spotify:artist:0gm1lHoOXAdy5OB4AwFYRr"
+generate(uri_giorgia, depth)
 
 uri_articolo31= 'https://open.spotify.com/artist/1Ij5ZIGlPTkoZibay58zHe?si=m1f7nzqpRDerrSO01ytDAg'
-Artist(uri_articolo31, 3)
+Artist(uri_articolo31, depth)
 
 uri_cugini = 'https://open.spotify.com/artist/3PxABgbDMeYxPK9GGjNg4j?si=MfEaWDmXSSKSvvAJYgXLEQ'
-Artist(uri_cugini, 3)
+Artist(uri_cugini, depth)
 
 uri_colapesce = 'https://open.spotify.com/artist/2KX2VLr3Eu6sn6EtxzCtvf?si=xCr_S5jhT36egpJixcZiEQ'
-Artist(uri_colapesce, 3)
+Artist(uri_colapesce, depth)
 
 uri_moda = 'https://open.spotify.com/artist/3ALm6zJLaJMWV0r89kuYtu?si=VpcwpcIOThacd3Nul3fNRA'
-Artist(uri_moda, 3)
+Artist(uri_moda, depth)
 
 uri_elodie = 'https://open.spotify.com/artist/7GgpsUpkj3olseoaTY7TEY?si=kxtROXZXTtOyiPEe62zCGQ'
-Artist(uri_elodie, 3)
+Artist(uri_elodie, depth)
 
 url_ultimo = 'https://open.spotify.com/artist/3hN3iJMbbBmqBSAMx5veDa?si=jY-37NoPQaWW3sW2GuxMZQ'
-Artist(url_ultimo, 3)
+Artist(url_ultimo, depth)
 
 url_mengoni ='https://open.spotify.com/artist/3xGlLcG9CUrs5MvFkSLOS5?si=GCuDnknSQF-21F5yucO8_Q'
-Artist(url_mengoni, 3)
+Artist(url_mengoni, depth)
 
 url_madame = 'https://open.spotify.com/artist/1vgQksyJ0IVz8y9XerEOy3?si=Lm3Fkz6dQNaStoBl5BsK8g'
-Artist(url_madame, 3)
+Artist(url_madame, depth)
 
 url_grignani = 'https://open.spotify.com/artist/0H1InhXaXQPL1aj0mvHemU?si=lwaE2EVlQ8GdRd7xx04TXA'
-Artist(url_grignani, 3)
+Artist(url_grignani, depth)
 
 url_tananai = 'https://open.spotify.com/artist/35V1WomiedCJeGfupcPm7s?si=hInDNsDWQtaPfZO9bdwp9Q'
-Artist(url_tananai, 3)
+Artist(url_tananai, depth)
 
 url_ariete = 'https://open.spotify.com/artist/2T4kh33TYdnDesvlQyRst8?si=lkQd9vieRqq8U_xBXV4JGA'
-Artist(url_ariete, 3)
+Artist(url_ariete, depth)
 
 uri_mara = 'https://open.spotify.com/artist/0zoMmzmyi8N8LwzhyXPvtk?si=GXNM32maTguBIAPxk4QvbQ'
-Artist(uri_mara, 3)
+Artist(uri_mara, depth)
 
 uri_lazza = 'https://open.spotify.com/artist/0jdNdfi4vAuVi7a6cPDFBM?si=n8Zjo7ApTMSEFn8DlP1n_Q'
-Artist(uri_lazza, 3)
+Artist(uri_lazza, depth)
 
 uri_mrain = 'https://open.spotify.com/artist/59MLbXG0jLVwJup3KAd6m1?si=DodOwQ7HQrSCZg3Zs99wkQ'
-Artist(uri_mrain, 3)
+Artist(uri_mrain, depth)
 
 uri_comacose = 'https://open.spotify.com/artist/0Sv8sjzMHBbAWXt4CGB9Us?si=sYADHL-3RtKP8LGJqi_l1g'
-Artist(uri_comacose, 3)
+Artist(uri_comacose, depth)
 
 uri_gassman = 'https://open.spotify.com/artist/5i0snp4GKBLiFsAZAwuJ5b?si=wNY31NnrS9e1OB2OE1vlnA'
-Artist(uri_gassman, 3)
+Artist(uri_gassman, depth)
 
 uri_rosa = 'https://open.spotify.com/artist/5gYADZXuZoaJwrwfAPbKuH?si=s_2XSjWUSMGcCoEAPvDRJw'
-Artist(uri_rosa, 3)
+Artist(uri_rosa, depth)
 
 uri_oxa = 'https://open.spotify.com/artist/6iuybPv0Mii8x21mztjaUN?si=MBQPLBA0R4y7m3jIja2rxQ'
-Artist(uri_oxa, 3)
+Artist(uri_oxa, depth)
 
 uri_paola = 'https://open.spotify.com/artist/6sXWE3eSY59H6zy1tiRPue?si=Ga7h1ZldQCGkJxAqfKobVw'
-Artist(uri_paola, 3)
+Artist(uri_paola, depth)
 
 uri_lda = 'https://open.spotify.com/artist/5FwDaIGy29GQC5d0MR7fKf?si=H9OCuBeSSye5sNfbCgeYJQ'
-Artist(uri_lda, 3)
+Artist(uri_lda, depth)
 
 
 #%%
 g = get_graph(Artist.dicArtists)
-g.vs['degree'] = g.degree()
+g.vs['degree'] = g.degree() 
 plot_graph(g)
 
 #%%

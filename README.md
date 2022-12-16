@@ -16,4 +16,10 @@ Artist(tedua, 3) creates artist tedua and all his tracks + all artists he made a
 Basically in Artist(tedua, n)  you can get n/2 level away from tedua, if n is even you do not get the tracks of the last layer
 
 
+# todo 
+- add date first track 
+- Artist di 3 si spacca :(
+
+
+
 
