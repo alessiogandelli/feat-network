@@ -309,27 +309,27 @@ plot_graph(g)
 #%%
 #adjacency_matrix = pd.DataFrame( np.zeros((len(nodes), len(nodes)), np.int32),index=nodes, columns=nodes,)
 
-g = ig.Graph()
+# g = ig.Graph()
 
-for artist in nodes.values():
-    g.add_vertex(artist.name)
+# for artist in nodes.values():
+#     g.add_vertex(artist.name)
 
-for artist in nodes.values():
-    for feat in artist.getFeat().items():
-        if feat[0] in nodes:
-            # add edge between artist and featured artist
-            g.add_edge(artist.name, nodes[feat[0]].name, weight=feat[1])
+# for artist in nodes.values():
+#     for feat in artist.getFeat().items():
+#         if feat[0] in nodes:
+#             # add edge between artist and featured artist
+#             g.add_edge(artist.name, nodes[feat[0]].name, weight=feat[1])
             
 
             
 
 
           
-#%%
+# #%%
 
-# create object graph 
-g = ig.Graph(n_vertices, edges)
+# # create object graph 
+# g = ig.Graph(n_vertices, edges)
 
-#%%
-g.vs['name'] = [nodes[artist].name for artist in adjacency_matrix.index]
+# #%%
+# g.vs['name'] = [nodes[artist].name for artist in adjacency_matrix.index]
 # %%
