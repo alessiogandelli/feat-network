@@ -20,6 +20,7 @@ class Artist:
 
 
     def __init__(self, artist_uri, autoload=0):
+        print('trying to get artist  ')
         artist_raw = spotify.artist(artist_uri)
         print( artist_raw['name'],'creating artist')
 

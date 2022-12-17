@@ -27,9 +27,9 @@ class Artist:
 
 
     def __init__(self, artist_uri, autoload=0):
-        print(,'creating artist')
-        artist_raw = spotify.artist(artist_uri)
        
+        artist_raw = spotify.artist(artist_uri)
+        print(self.name,'creating artist')
 
         self.id = next(Artist.id_iter)
         self.name = artist_raw['name']

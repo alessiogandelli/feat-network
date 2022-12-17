@@ -70,6 +70,7 @@ def plot_graph(g):
 
 
 def generate(uri, depth=3):
+    print('svuoto tutto')
     Artist.reset()
     Track.reset()
     artista = Artist(uri, depth)
