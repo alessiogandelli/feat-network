@@ -24,15 +24,15 @@ spotify = spotipy.Spotify( client_credentials_manager=SpotifyClientCredentials(c
 def get_graph(nodes):
     g = ig.Graph()
 
-
+    # create nodes
     for artist in nodes.values():
         g.add_vertex(artist.name,   popularity = artist.popularity, 
                                     genres = artist.genres, 
                                     followers = artist.followers
                                     )
 
+    # create edges 
     for artist in nodes.values():
-        
         for feat in artist.getFeat().items():
             
            if feat[0] in nodes :
@@ -90,10 +90,10 @@ def membership_to_colour(membership):
 
 #%%
 
-uri_tedua = 'spotify:artist:1AgAVqo74e2q4FVvg0xpT7' #tedua 
-uri_marra = 'spotify:artist:5AZuEF0feCXMkUCwQiQlW7' #marra
-#tedua = generate(uri_tedua,2)
-marra = generate(uri_marra,2)
+# uri_tedua = 'spotify:artist:1AgAVqo74e2q4FVvg0xpT7' #tedua 
+# uri_marra = 'spotify:artist:5AZuEF0feCXMkUCwQiQlW7' #marra
+# #tedua = generate(uri_tedua,2)
+# marra = generate(uri_marra,2)
 
  #%%
 depth = 3
@@ -229,77 +229,77 @@ plot_graph(g)
 
 
 
-# %%
+# # %%
 
-n_vertices = len(Artist.dicArtists)
-nodes =  Artist.dicArtists.copy()
+# n_vertices = len(Artist.dicArtists)
+# nodes =  Artist.dicArtists.copy()
 
-g = get_graph(n_vertices, nodes)
+# g = get_graph(n_vertices, nodes)
 
-# compute centrality measures
-g.vs['degree'] = g.degree()
-g.vs['betweenness'] = g.betweenness()
-g.vs['closeness'] = g.closeness()
-g.vs['eigenvector_centrality'] = g.eigenvector_centrality()
-
-
-# %%
-# community detection using edge betweenness
-
-dendrogram = g.community_edge_betweenness()
-clusters = dendrogram.as_clustering()
-membership = clusters.membership
-g.vs['membership'] = membership
+# # compute centrality measures
+# g.vs['degree'] = g.degree()
+# g.vs['betweenness'] = g.betweenness()
+# g.vs['closeness'] = g.closeness()
+# g.vs['eigenvector_centrality'] = g.eigenvector_centrality()
 
 
+# # %%
+# # community detection using edge betweenness
 
-# %%
-# print all with colored clusters 
-colours = membership_to_colour(membership)
-fig, ax = plt.subplots(figsize=(30,30))
-ig.plot(
-    g,
-    target=ax,
-    layout="kamada_kawai", # print nodes in a circular layout
-    vertex_size=  [p/100 for p in g.vs['popularity']],
-    vertex_frame_width=4.0,
-    vertex_frame_color="white",
-    vertex_label=g.vs["name"],
-    vertex_label_size=15.0,
-    edge_width = [a/2-2 for a in g.es['weight']],
-    vertex_color = colours,
-    )
-# %%
-# select members of cluster 0 and create a subgraph
-g0 = g.vs.select(membership=0).subgraph()
-plot_graph(g0)
+# dendrogram = g.community_edge_betweenness()
+# clusters = dendrogram.as_clustering()
+# membership = clusters.membership
+# g.vs['membership'] = membership
 
 
 
+# # %%
+# # print all with colored clusters 
+# colours = membership_to_colour(membership)
+# fig, ax = plt.subplots(figsize=(30,30))
+# ig.plot(
+#     g,
+#     target=ax,
+#     layout="kamada_kawai", # print nodes in a circular layout
+#     vertex_size=  [p/100 for p in g.vs['popularity']],
+#     vertex_frame_width=4.0,
+#     vertex_frame_color="white",
+#     vertex_label=g.vs["name"],
+#     vertex_label_size=15.0,
+#     edge_width = [a/2-2 for a in g.es['weight']],
+#     vertex_color = colours,
+#     )
+# # %%
+# # select members of cluster 0 and create a subgraph
+# g0 = g.vs.select(membership=0).subgraph()
+# plot_graph(g0)
 
 
-#%%
-#create dataframe 
-df = pd.DataFrame(columns = ['player', 'game', 'points'])
-
-for player in data.keys():
-    for i, game in enumerate(data[player]):
-        for turn in game:
-            df = df.append({'player': player, 'game': i+1, 'points': turn}, ignore_index=True)
 
 
-#plot df 
+
+# #%%
+# #create dataframe 
+# df = pd.DataFrame(columns = ['player', 'game', 'points'])
+
+# for player in data.keys():
+#     for i, game in enumerate(data[player]):
+#         for turn in game:
+#             df = df.append({'player': player, 'game': i+1, 'points': turn}, ignore_index=True)
 
 
-sns.set(style="whitegrid")
-ax = sns.boxplot(x="game", y="points", data=df)
-ax = sns.swarmplot(x="game", y="points", data=df, color=".25")
-#shape dots based on players
-ax = sns.swarmplot(x="game", y="points", data=df, hue='player', palette=['red', 'blue'], size=10, marker='D')
+# #plot df 
 
-plt.show()
-#set the size of the plot
-plt.figure(figsize=(10,10))
+
+# sns.set(style="whitegrid")
+# ax = sns.boxplot(x="game", y="points", data=df)
+# ax = sns.swarmplot(x="game", y="points", data=df, color=".25")
+# #shape dots based on players
+# ax = sns.swarmplot(x="game", y="points", data=df, hue='player', palette=['red', 'blue'], size=10, marker='D')
+
+# plt.show()
+# #set the size of the plot
+# plt.figure(figsize=(10,10))
 
 
 
