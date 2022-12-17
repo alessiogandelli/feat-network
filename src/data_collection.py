@@ -18,7 +18,7 @@ secret = os.environ.get("CLIENT_SECRET")
 spotify = spotipy.Spotify( client_credentials_manager=SpotifyClientCredentials(cid, secret))
 
 
-
+#%%
 
 
 def get_graph(nodes):
@@ -35,7 +35,7 @@ def get_graph(nodes):
         
         for feat in artist.getFeat().items():
             
-           if feat[0] in nodes and artist in nodes:
+           if feat[0] in nodes :
                 # add edge between artist and featured artist
                 g.add_edge(artist.name, nodes[feat[0]].name, weight=feat[1])
                 
@@ -62,7 +62,7 @@ def plot_graph(g):
         vertex_frame_color="white",
         vertex_label=g.vs["name"],
         vertex_label_size=30.0,
-        edge_width = [a for a in g.es['weight']],
+        #edge_width = [a for a in g.es['weight']],
         #vertex_color = ['green' if 'italian hip hop' in gen else 'grey' for gen in g.vs['genres']],
         vertex_color = ['#425df5' if artist > 3 else 'grey' for artist in g.vs['degree']],
 
@@ -163,7 +163,7 @@ Artist(uri_lda, depth)
 
 
 #%%
-g = get_graph(Artist.dicArtists)
+g = get_graph(Artist.dicArtists.copy())
 g.vs['degree'] = g.degree() 
 plot_graph(g)
 

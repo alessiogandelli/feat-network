@@ -27,8 +27,9 @@ class Artist:
 
 
     def __init__(self, artist_uri, autoload=0):
+        print(,'creating artist')
         artist_raw = spotify.artist(artist_uri)
-        print( artist_raw['name'],'creating artist')
+       
 
         self.id = next(Artist.id_iter)
         self.name = artist_raw['name']
@@ -87,8 +88,10 @@ class Artist:
             tracks_names = set()
            
             for a in albums_uri:
+                print(self.name, a)
                 tracks =  spotify.album_tracks(a, limit=50, offset=0, market='it')['items']
                 n_tracks = len(tracks)
+
                 for i in range(n_tracks):
                     if tracks[i]['name'] not in tracks_names:
                         tracks_uri.append(tracks[i]['uri'])
